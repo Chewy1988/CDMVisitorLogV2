@@ -238,14 +238,18 @@ function save(){
   let deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
 
   visits.forEach(v => {
-    if (!allPrev.includes(v.name) && !deleted.includes(v.name)) {
-      allPrev.push(v.name);
+    if (
+      !allPrev.some(p => p.name === v.name && p.company === v.company) &&
+      !deleted.some(d => d.name === v.name && d.company === v.company)
+    ) {
+      allPrev.push({ name: v.name, company: v.company });
     }
   });
 
   localStorage.setItem("previousVisitors", JSON.stringify(allPrev));
   render();
 }
+
 
 /* -------------------- Render -------------------- */
 function render(){
@@ -265,33 +269,38 @@ function render(){
   });
 
   const allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
-  const deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
+const deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
 
-  const prev = allPrev.filter(
-    name => !signedIn.some(v => v.name === name) && !deleted.includes(name)
-  );
+const prev = allPrev.filter(p =>
+  !signedIn.some(v => v.name === p.name && v.company === p.company) &&
+  !deleted.some(d => d.name === p.name && d.company === p.company)
+);
 
-  prev.forEach(name => {
-    const last = [...visits].reverse().find(v => v.name === name);
-    const company = last ? last.company : "";
+prev.forEach(p => {
+  const li = document.createElement("li");
+  li.className = "prev-item";
 
-    const li = document.createElement("li");
-    li.className = "prev-item";
+  const span = document.createElement("span");
+  span.textContent = `${p.name} (${p.company})`;
+  span.onclick = () => {
+    nameInput.value = p.name;
+    companyInput.value = p.company;
+  };
 
-    const span = document.createElement("span");
-    span.textContent = `${name} (${company})`;
-    span.onclick = () => {
-      nameInput.value = name;
-      companyInput.value = company;
-    };
+  const del = document.createElement("button");
+  del.textContent = "×";
+  del.onclick = e => {
+    e.stopPropagation();
+    let deletedList = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
+    deletedList.push(p);
+    localStorage.setItem("deletedVisitors", JSON.stringify(deletedList));
+    render();
+  };
 
-    const del = document.createElement("button");
-    del.textContent = "×";
-    del.onclick = e => {
-      e.stopPropagation();
-      let deletedList = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
-      if (!deletedList.includes(name)) deletedList.push(name);
-      localStorage.setItem("deletedVisitors", JSON.stringify(deletedList));
+  li.append(span, del);
+  previousList.appendChild(li);
+});
+
       render();
     };
 
