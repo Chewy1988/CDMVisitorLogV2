@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>iPad Visitor Log</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#34c759">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -277,32 +277,10 @@ function confirmExport(success){
 }
 
 /* ----------------- Clear Inputs ----------------- */
-/* Clear inputs after 10s */
 function resetNameClearTimer(){ 
   if(nameClearTimeout) clearTimeout(nameClearTimeout); 
-  nameClearTimeout=setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000);
-}
-
-/* Prevent layout jump on iPad when focusing inputs */
-const inputs = document.querySelectorAll('input');
-inputs.forEach(input => {
-  input.addEventListener('focus', () => {
-    setTimeout(() => window.scrollTo(0, 0), 50);
-  });
-});
-
-</script>
-
-<script>
-// --- Service Worker Registration ---
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(reg => console.log('Service Worker registered with scope:', reg.scope))
-      .catch(err => console.log('Service Worker registration failed:', err));
-  });
+  nameClearTimeout = setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000); 
 }
 </script>
-
 </body>
 </html>
