@@ -189,34 +189,48 @@ li:active { background: #d1d1d6; }
 
 <!-- ---------- JavaScript ---------- -->
 <script>
+
+/* -------------------- State -------------------- */
 let visits = JSON.parse(localStorage.getItem("visits")) || [];
 let pendingSignInName = null;
 let pendingSignInCompany = null;
 let pendingAction = null;
 let nameClearTimeout = null;
 
+/* -------------------- Elements -------------------- */
 const nameInput = document.getElementById("nameInput");
 const companyInput = document.getElementById("companyInput");
 const activeList = document.getElementById("activeList");
 const previousList = document.getElementById("previousList");
+const body = document.body;
 
-/* ---------- Input Scroll Lock Fix ---------- */
+/* -------------------- Input Scroll Lock -------------------- */
 [nameInput, companyInput].forEach(input => {
-  input.addEventListener("focus", () => document.body.classList.add("input-focused"));
-  input.addEventListener("blur", () => document.body.classList.remove("input-focused"));
+  input.addEventListener("focus", () => body.classList.add("input-focused"));
+  input.addEventListener("blur", () => body.classList.remove("input-focused"));
 });
 
-window.addEventListener("load", () => render());
-nameInput.addEventListener("input", resetNameClearTimer);
-nameInput.addEventListener("focus", resetNameClearTimer);
+/* -------------------- Auto Clear Timer -------------------- */
+[nameInput, companyInput].forEach(input => {
+  input.addEventListener("input", resetNameClearTimer);
+  input.addEventListener("focus", resetNameClearTimer);
+});
 
-/* ---------- Utility ---------- */
+/* -------------------- Utilities -------------------- */
 function formatDate(d){
-  const date=new Date(d);
+  const date = new Date(d);
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")} ${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}`;
 }
 
-/* ---------- Save Visits ---------- */
+function resetNameClearTimer(){
+  if (nameClearTimeout) clearTimeout(nameClearTimeout);
+  nameClearTimeout = setTimeout(() => {
+    nameInput.value = "";
+    companyInput.value = "";
+  }, 10000);
+}
+
+/* -------------------- Persistence -------------------- */
 function save(){
   localStorage.setItem("visits", JSON.stringify(visits));
 
@@ -224,130 +238,168 @@ function save(){
   let deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
 
   visits.forEach(v => {
-    if(!allPrev.includes(v.name) && !deleted.includes(v.name)) allPrev.push(v.name);
+    if (!allPrev.includes(v.name) && !deleted.includes(v.name)) {
+      allPrev.push(v.name);
+    }
   });
 
   localStorage.setItem("previousVisitors", JSON.stringify(allPrev));
-  nameInput.value="";
-  companyInput.value="";
   render();
 }
 
-/* ---------- Render ---------- */
+/* -------------------- Render -------------------- */
 function render(){
-  // Active
-  activeList.innerHTML="";
-  const signedIn = visits.filter(v=>!v.signOut);
-  signedIn.forEach(v=>{
-    const li=document.createElement("li");
-    li.textContent=`${v.name} (${v.company})`;
-    li.addEventListener("click", ()=>{ nameInput.value=v.name; companyInput.value=v.company; });
+  activeList.innerHTML = "";
+  previousList.innerHTML = "";
+
+  const signedIn = visits.filter(v => !v.signOut);
+
+  signedIn.forEach(v => {
+    const li = document.createElement("li");
+    li.textContent = `${v.name} (${v.company})`;
+    li.onclick = () => {
+      nameInput.value = v.name;
+      companyInput.value = v.company;
+    };
     activeList.appendChild(li);
   });
 
-  // Previous
-  previousList.innerHTML="";
   const allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
   const deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
-  const prev = allPrev.filter(name => !signedIn.some(v=>v.name===name) && !deleted.includes(name));
 
-  prev.forEach(name=>{
-    const last = visits.slice().reverse().find(v=>v.name===name);
+  const prev = allPrev.filter(
+    name => !signedIn.some(v => v.name === name) && !deleted.includes(name)
+  );
+
+  prev.forEach(name => {
+    const last = [...visits].reverse().find(v => v.name === name);
     const company = last ? last.company : "";
 
-    const li=document.createElement("li");
-    li.className="prev-item";
+    const li = document.createElement("li");
+    li.className = "prev-item";
 
-    const span=document.createElement("span");
-    span.textContent=`${name} (${company})`;
-    span.addEventListener("click", ()=>{ nameInput.value=name; companyInput.value=company; });
+    const span = document.createElement("span");
+    span.textContent = `${name} (${company})`;
+    span.onclick = () => {
+      nameInput.value = name;
+      companyInput.value = company;
+    };
 
-    const delBtn=document.createElement("button");
-    delBtn.textContent="×";
-    delBtn.title="Delete visitor";
-    delBtn.addEventListener("click", e=>{
+    const del = document.createElement("button");
+    del.textContent = "×";
+    del.onclick = e => {
       e.stopPropagation();
       let deletedList = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
-      if(!deletedList.includes(name)) deletedList.push(name);
+      if (!deletedList.includes(name)) deletedList.push(name);
       localStorage.setItem("deletedVisitors", JSON.stringify(deletedList));
       render();
-    });
+    };
 
-    li.appendChild(span);
-    li.appendChild(delBtn);
+    li.append(span, del);
     previousList.appendChild(li);
   });
 }
 
-/* ---------- Sign In / Out ---------- */
+/* -------------------- Sign In / Out -------------------- */
 function signIn(){
-  const name=nameInput.value.trim();
-  const company=companyInput.value.trim();
-  if(!name) return alert("Enter your name");
-  if(!company) return alert("Enter your company");
-  if(visits.find(v=>v.name===name && !v.signOut)) return alert("Already signed in");
-  pendingSignInName=name;
-  pendingSignInCompany=company;
-  document.getElementById("confirmModal").style.display="block";
+  const name = nameInput.value.trim();
+  const company = companyInput.value.trim();
+  if (!name || !company) return alert("Enter name and company");
+
+  if (visits.find(v => v.name === name && v.company === company && !v.signOut)) {
+    return alert("Already signed in");
+  }
+
+  pendingSignInName = name;
+  pendingSignInCompany = company;
+  openModal("confirmModal");
 }
-function confirmInduction(conf){
-  document.getElementById("confirmModal").style.display="none";
-  if(!conf){ pendingSignInName=null; pendingSignInCompany=null; return; }
-  visits.push({name:pendingSignInName, company:pendingSignInCompany, signIn:new Date().toISOString(), signOut:null});
-  pendingSignInName=null; pendingSignInCompany=null;
-  save();
-}
-function signOut(){
-  const name=nameInput.value.trim();
-  if(!name) return alert("Enter your name");
-  const v=visits.find(v=>v.name===name && !v.signOut);
-  if(!v) return alert("Not signed in");
-  v.signOut=new Date().toISOString();
+
+function confirmInduction(ok){
+  closeModal("confirmModal");
+  if (!ok) return;
+
+  visits.push({
+    name: pendingSignInName,
+    company: pendingSignInCompany,
+    signIn: new Date().toISOString(),
+    signOut: null
+  });
+
+  pendingSignInName = null;
+  pendingSignInCompany = null;
   save();
 }
 
-/* ---------- Export ---------- */
+function signOut(){
+  const name = nameInput.value.trim();
+  const company = companyInput.value.trim();
+
+  const v = visits.find(v =>
+    v.name === name && v.company === company && !v.signOut
+  );
+
+  if (!v) return alert("Not signed in");
+
+  v.signOut = new Date().toISOString();
+  save();
+}
+
+/* -------------------- Export -------------------- */
 function requestExport(){
-  pendingAction="export";
-  document.getElementById("passcodeModal").style.display="block";
-  document.getElementById("passcodeInput").value="";
+  pendingAction = "export";
+  openModal("passcodeModal");
+  document.getElementById("passcodeInput").value = "";
   document.getElementById("passcodeInput").focus();
 }
-function closePasscodeModal(){ document.getElementById("passcodeModal").style.display="none";}
+
 function checkPasscode(){
-  const p=document.getElementById("passcodeInput").value;
-  if(p!=="8877"){ alert("Incorrect"); document.getElementById("passcodeInput").value=""; return;}
-  closePasscodeModal();
-  if(pendingAction==="export") exportCSV();
-  pendingAction=null;
-}
-function exportCSV(){
-  let csv="Name,Company,Sign In,Sign Out\n";
-  visits.forEach(v=>csv+=`${v.name},${v.company},${formatDate(v.signIn)},${v.signOut?formatDate(v.signOut):""}\n`);
-  const ts=new Date();
-  const filename=`CDM Visitors Log_${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,"0")}-${String(ts.getDate()).padStart(2,"0")}_${String(ts.getHours()).padStart(2,"0")}-${String(ts.getMinutes()).padStart(2,"0")}-${String(ts.getSeconds()).padStart(2,"0")}.csv`;
-  const blob=new Blob([csv],{type:"text/csv"});
-  const link=document.createElement("a");
-  link.href=URL.createObjectURL(blob);
-  link.download=filename;
-  link.click();
-  URL.revokeObjectURL(link.href);
-  document.getElementById("exportConfirmModal").style.display="block";
-}
-function confirmExport(success){
-  document.getElementById("exportConfirmModal").style.display="none";
-  if(!success){ alert("Export cancelled"); return;}
-  visits=[];
-  localStorage.setItem("visits",JSON.stringify(visits));
-  render();
-  alert("Export done, previous visitors retained.");
+  const p = document.getElementById("passcodeInput").value;
+  if (p !== "8877") return alert("Incorrect passcode");
+
+  closeModal("passcodeModal");
+  if (pendingAction === "export") exportCSV();
+  pendingAction = null;
 }
 
-/* ---------- Input Clear Timer ---------- */
-function resetNameClearTimer(){
-  if(nameClearTimeout) clearTimeout(nameClearTimeout);
-  nameClearTimeout=setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000);
+function exportCSV(){
+  let csv = "Name,Company,Sign In,Sign Out\n";
+  visits.forEach(v => {
+    csv += `${v.name},${v.company},${formatDate(v.signIn)},${v.signOut ? formatDate(v.signOut) : ""}\n`;
+  });
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "CDM_Visitor_Log.csv";
+  link.click();
+  URL.revokeObjectURL(link.href);
+
+  openModal("exportConfirmModal");
 }
+
+function confirmExport(ok){
+  closeModal("exportConfirmModal");
+  if (!ok) return;
+
+  visits = [];
+  localStorage.setItem("visits", JSON.stringify(visits));
+  render();
+}
+
+/* -------------------- Modal Helpers -------------------- */
+function openModal(id){
+  body.classList.remove("input-focused");
+  document.getElementById(id).style.display = "block";
+}
+
+function closeModal(id){
+  document.getElementById(id).style.display = "none";
+}
+
+/* -------------------- Init -------------------- */
+window.onload = render;
 </script>
+
 </body>
 </html>
