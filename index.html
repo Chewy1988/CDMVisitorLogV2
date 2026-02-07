@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>iPad Visitor Log Dashboard</title>
+<title>iPad Visitor Log</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#34c759">
@@ -11,94 +11,92 @@
 <link rel="apple-touch-icon" href="logo.png">
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
+/* ---------- Body ---------- */
+body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f2f2f7;
+  margin: 0;
+  padding: 10px;
+  height: 100vh;
+  overflow: hidden;
 }
+
+/* Prevent scrolling when input focused */
+body.input-focused {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* ---------- Layout ---------- */
 .container {
   display: flex;
   flex-direction: row;
-  height: 100vh;         /* full screen */
-  max-width: 100vw;
-  gap: 20px;
-  padding: 20px;
-  box-sizing: border-box;
+  max-width: 1000px;
+  margin: auto;
+  gap: 15px;
+  height: 90vh;
 }
-.left-column, .right-column {
+
+/* Left column */
+.left-column {
+  flex: 2;
   background: white;
+  padding: 15px;
   border-radius: 20px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-}
-.left-column { flex: 2; padding: 20px; }
-.right-column { flex: 1; padding: 20px; }
-
-/* Logo */
-.logo-container {
-  text-align: center;
-  margin-bottom: 10px;
-}
-.logo-container img {
-  max-width: 180px;
-  height: auto;
+  justify-content: flex-start;
 }
 
-/* Inputs and buttons */
-h1 { text-align: center; font-size: 28px; margin: 5px 0 15px; }
+/* Right column */
+.right-column {
+  flex: 1;
+  background: white;
+  padding: 15px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  overflow-y: auto;
+}
+
+/* ---------- Typography & Inputs ---------- */
+h1 { text-align: center; font-size: 26px; margin-bottom: 10px; }
+h2 { margin-top: 15px; font-size: 20px; }
 input {
   width: 100%;
   font-size: 22px;
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 14px;
   border-radius: 12px;
   border: 1px solid #ccc;
+  margin-bottom: 12px;
   box-sizing: border-box;
 }
-.buttons {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.buttons button {
+#companyInput { font-size: 18px; }
+.buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+button {
   flex: 1;
   font-size: 20px;
-  padding: 12px;
-  border-radius: 12px;
+  padding: 14px;
   border: none;
+  border-radius: 14px;
   cursor: pointer;
+  min-width: 100px;
 }
 .sign-in { background: #34c759; color: white; }
 .sign-out { background: #ff3b30; color: white; }
+.export { font-size: 18px; padding: 10px 16px; border-radius: 12px; background: grey; color: white; border: none; cursor: pointer; }
+ul { list-style: none; padding: 0; overflow-y: auto; flex-grow: 1; }
+li { background: #f2f2f7; margin: 5px 0; padding: 10px 14px; border-radius: 10px; font-size: 18px; cursor: pointer; }
+li:active { background: #d1d1d6; }
 
-/* Sections */
-h2 { margin: 10px 0; font-size: 22px; }
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex-grow: 1;
-  overflow-y: auto;
-}
-li {
-  background: #f2f2f7;
-  margin: 5px 0;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 18px;
+/* Previous visitor delete button */
+.prev-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
+  width: 100%;
 }
-li:active { background: #d1d1d6; }
-
-/* Previous visitors delete button */
-.prev-item span { flex: 1; }
+.prev-item span { flex: 1; cursor: pointer; }
 .prev-item button {
   background: transparent;
   border: none;
@@ -109,26 +107,12 @@ li:active { background: #d1d1d6; }
 }
 .prev-item button:hover { color: red; }
 
-.footer { text-align: center; margin-top: 5px; }
-.export { font-size: 18px; padding: 10px 14px; border-radius: 12px; background: grey; color: white; border: none; cursor: pointer; }
-
-/* Modals */
+/* ---------- Modals ---------- */
 #confirmModal, #passcodeModal, #exportConfirmModal { display:none; }
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); }
-.modal {
-  position: fixed;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 20px;
-  border-radius: 16px;
-  max-width: 400px;
-  width: 90%;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-}
+.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
 .modal h3 { font-size: 22px; margin-bottom: 10px; }
-.modal-buttons { display: flex; gap: 10px; margin-top:10px; }
+.modal-buttons { display: flex; gap: 10px; }
 .modal-buttons button { flex: 1; font-size: 20px; padding: 12px; border-radius: 12px; border: none; cursor: pointer; }
 .modal-buttons .yes { background: #34c759; color: white; }
 .modal-buttons .no { background: #ff3b30; color: white; }
@@ -140,34 +124,7 @@ li:active { background: #d1d1d6; }
 </head>
 <body>
 
-<div class="container">
-  <!-- Left -->
-  <div class="left-column">
-    <div class="logo-container">
-      <img src="logo.png" alt="Logo">
-    </div>
-    <h1>Project Argo CDM</h1>
-    <input id="nameInput" placeholder="Enter your name">
-    <input id="companyInput" placeholder="Enter your company">
-    <div class="buttons">
-      <button class="sign-in" onclick="signIn()">Sign In</button>
-      <button class="sign-out" onclick="signOut()">Sign Out</button>
-    </div>
-    <h2>Currently Signed In</h2>
-    <ul id="activeList"></ul>
-    <div class="footer">
-      <button class="export" onclick="requestExport()">Generate Report</button>
-    </div>
-  </div>
-
-  <!-- Right -->
-  <div class="right-column">
-    <h2>Previous Visitors</h2>
-    <ul id="previousList"></ul>
-  </div>
-</div>
-
-<!-- Modals (unchanged) -->
+<!-- ---------- Modals ---------- -->
 <div id="confirmModal">
   <div class="modal-backdrop"></div>
   <div class="modal">
@@ -204,8 +161,34 @@ li:active { background: #d1d1d6; }
   </div>
 </div>
 
+<!-- ---------- Main Container ---------- -->
+<div class="container">
+  <!-- Left Column -->
+  <div class="left-column">
+    <img src="logo.png" alt="Logo" style="display:block; max-width:180px; margin:0 auto 10px;" />
+    <h1>Project Argo CDM</h1>
+    <input id="nameInput" placeholder="Enter your name" />
+    <input id="companyInput" placeholder="Enter your company" />
+    <div class="buttons">
+      <button class="sign-in" onclick="signIn()">Sign In</button>
+      <button class="sign-out" onclick="signOut()">Sign Out</button>
+    </div>
+    <h2>Currently Signed In</h2>
+    <ul id="activeList"></ul>
+    <div class="footer">
+      <button class="export" onclick="requestExport()">Generate Report</button>
+    </div>
+  </div>
+
+  <!-- Right Column -->
+  <div class="right-column">
+    <h2>Previous Visitors</h2>
+    <ul id="previousList"></ul>
+  </div>
+</div>
+
+<!-- ---------- JavaScript ---------- -->
 <script>
-/* ------------------ State ------------------ */
 let visits = JSON.parse(localStorage.getItem("visits")) || [];
 let pendingSignInName = null;
 let pendingSignInCompany = null;
@@ -217,65 +200,76 @@ const companyInput = document.getElementById("companyInput");
 const activeList = document.getElementById("activeList");
 const previousList = document.getElementById("previousList");
 
-window.addEventListener("load", render);
+/* ---------- Input Scroll Lock Fix ---------- */
+[nameInput, companyInput].forEach(input => {
+  input.addEventListener("focus", () => document.body.classList.add("input-focused"));
+  input.addEventListener("blur", () => document.body.classList.remove("input-focused"));
+});
+
+window.addEventListener("load", () => render());
 nameInput.addEventListener("input", resetNameClearTimer);
 nameInput.addEventListener("focus", resetNameClearTimer);
 
-/* ------------------ Utilities ------------------ */
-function formatDate(d) {
-  const date = new Date(d);
+/* ---------- Utility ---------- */
+function formatDate(d){
+  const date=new Date(d);
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")} ${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}`;
 }
 
-/* ------------------ Save & Render ------------------ */
-function save() {
+/* ---------- Save Visits ---------- */
+function save(){
   localStorage.setItem("visits", JSON.stringify(visits));
+
   let allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
   let deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
+
   visits.forEach(v => {
     if(!allPrev.includes(v.name) && !deleted.includes(v.name)) allPrev.push(v.name);
   });
+
   localStorage.setItem("previousVisitors", JSON.stringify(allPrev));
-  nameInput.value = "";
-  companyInput.value = "";
+  nameInput.value="";
+  companyInput.value="";
   render();
 }
 
-function render() {
-  activeList.innerHTML = "";
-  const signedIn = visits.filter(v => !v.signOut);
-  signedIn.forEach(v => {
-    const li = document.createElement("li");
-    li.textContent = `${v.name} (${v.company})`;
+/* ---------- Render ---------- */
+function render(){
+  // Active
+  activeList.innerHTML="";
+  const signedIn = visits.filter(v=>!v.signOut);
+  signedIn.forEach(v=>{
+    const li=document.createElement("li");
+    li.textContent=`${v.name} (${v.company})`;
     li.addEventListener("click", ()=>{ nameInput.value=v.name; companyInput.value=v.company; });
     activeList.appendChild(li);
   });
 
-  previousList.innerHTML = "";
+  // Previous
+  previousList.innerHTML="";
   const allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
   const deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
-  const prev = allPrev.filter(n => !signedIn.some(v => v.name===n))
-                     .filter(n => !deleted.includes(n));
-  prev.forEach(name => {
+  const prev = allPrev.filter(name => !signedIn.some(v=>v.name===name) && !deleted.includes(name));
+
+  prev.forEach(name=>{
     const last = visits.slice().reverse().find(v=>v.name===name);
     const company = last ? last.company : "";
-    const li = document.createElement("li");
-    li.className = "prev-item";
 
-    const span = document.createElement("span");
-    span.textContent = `${name} (${company})`;
+    const li=document.createElement("li");
+    li.className="prev-item";
+
+    const span=document.createElement("span");
+    span.textContent=`${name} (${company})`;
     span.addEventListener("click", ()=>{ nameInput.value=name; companyInput.value=company; });
 
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "×";
-    delBtn.title = "Delete visitor";
+    const delBtn=document.createElement("button");
+    delBtn.textContent="×";
+    delBtn.title="Delete visitor";
     delBtn.addEventListener("click", e=>{
       e.stopPropagation();
       let deletedList = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
       if(!deletedList.includes(name)) deletedList.push(name);
       localStorage.setItem("deletedVisitors", JSON.stringify(deletedList));
-      const updated = allPrev.filter(n=>n!==name);
-      localStorage.setItem("previousVisitors", JSON.stringify(updated));
       render();
     });
 
@@ -285,74 +279,74 @@ function render() {
   });
 }
 
-/* ------------------ Sign In / Out ------------------ */
-function signIn() {
-  const name = nameInput.value.trim();
-  const company = companyInput.value.trim();
+/* ---------- Sign In / Out ---------- */
+function signIn(){
+  const name=nameInput.value.trim();
+  const company=companyInput.value.trim();
   if(!name) return alert("Enter your name");
   if(!company) return alert("Enter your company");
-  if(visits.find(v => v.name===name && !v.signOut)) return alert("Already signed in");
-  pendingSignInName = name;
-  pendingSignInCompany = company;
-  document.getElementById("confirmModal").style.display = "block";
+  if(visits.find(v=>v.name===name && !v.signOut)) return alert("Already signed in");
+  pendingSignInName=name;
+  pendingSignInCompany=company;
+  document.getElementById("confirmModal").style.display="block";
 }
-function confirmInduction(conf) {
-  document.getElementById("confirmModal").style.display = "none";
+function confirmInduction(conf){
+  document.getElementById("confirmModal").style.display="none";
   if(!conf){ pendingSignInName=null; pendingSignInCompany=null; return; }
-  visits.push({ name: pendingSignInName, company: pendingSignInCompany, signIn:new Date().toISOString(), signOut:null });
+  visits.push({name:pendingSignInName, company:pendingSignInCompany, signIn:new Date().toISOString(), signOut:null});
   pendingSignInName=null; pendingSignInCompany=null;
   save();
 }
-function signOut() {
-  const name = nameInput.value.trim();
+function signOut(){
+  const name=nameInput.value.trim();
   if(!name) return alert("Enter your name");
-  const v = visits.find(v=>v.name===name && !v.signOut);
+  const v=visits.find(v=>v.name===name && !v.signOut);
   if(!v) return alert("Not signed in");
-  v.signOut = new Date().toISOString();
+  v.signOut=new Date().toISOString();
   save();
 }
 
-/* ------------------ Export ------------------ */
-function requestExport() { 
-  pendingAction="export"; 
-  document.getElementById("passcodeModal").style.display="block"; 
-  document.getElementById("passcodeInput").value=""; 
+/* ---------- Export ---------- */
+function requestExport(){
+  pendingAction="export";
+  document.getElementById("passcodeModal").style.display="block";
+  document.getElementById("passcodeInput").value="";
   document.getElementById("passcodeInput").focus();
 }
 function closePasscodeModal(){ document.getElementById("passcodeModal").style.display="none";}
-function checkPasscode(){ 
-  const p=document.getElementById("passcodeInput").value; 
-  if(p!=="8877"){ alert("Incorrect"); document.getElementById("passcodeInput").value=""; return;} 
-  closePasscodeModal(); 
-  if(pendingAction==="export") exportCSV(); 
+function checkPasscode(){
+  const p=document.getElementById("passcodeInput").value;
+  if(p!=="8877"){ alert("Incorrect"); document.getElementById("passcodeInput").value=""; return;}
+  closePasscodeModal();
+  if(pendingAction==="export") exportCSV();
   pendingAction=null;
 }
-function exportCSV(){ 
+function exportCSV(){
   let csv="Name,Company,Sign In,Sign Out\n";
   visits.forEach(v=>csv+=`${v.name},${v.company},${formatDate(v.signIn)},${v.signOut?formatDate(v.signOut):""}\n`);
   const ts=new Date();
   const filename=`CDM Visitors Log_${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,"0")}-${String(ts.getDate()).padStart(2,"0")}_${String(ts.getHours()).padStart(2,"0")}-${String(ts.getMinutes()).padStart(2,"0")}-${String(ts.getSeconds()).padStart(2,"0")}.csv`;
-  const blob=new Blob([csv],{type:"text/csv"}); 
-  const link=document.createElement("a"); 
-  link.href=URL.createObjectURL(blob); 
-  link.download=filename; 
-  link.click(); 
+  const blob=new Blob([csv],{type:"text/csv"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download=filename;
+  link.click();
   URL.revokeObjectURL(link.href);
-  document.getElementById("exportConfirmModal").style.display="block"; 
+  document.getElementById("exportConfirmModal").style.display="block";
 }
-function confirmExport(success){ 
-  document.getElementById("exportConfirmModal").style.display="none"; 
-  if(!success){ alert("Export cancelled"); return;} 
-  visits=[]; 
-  localStorage.setItem("visits", JSON.stringify(visits)); 
-  render(); 
-  alert("Export done, previous visitors retained."); 
+function confirmExport(success){
+  document.getElementById("exportConfirmModal").style.display="none";
+  if(!success){ alert("Export cancelled"); return;}
+  visits=[];
+  localStorage.setItem("visits",JSON.stringify(visits));
+  render();
+  alert("Export done, previous visitors retained.");
 }
 
-/* ------------------ Clear Inputs ------------------ */
-function resetNameClearTimer(){ 
-  if(nameClearTimeout) clearTimeout(nameClearTimeout); 
-  nameClearTimeout = setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000); 
+/* ---------- Input Clear Timer ---------- */
+function resetNameClearTimer(){
+  if(nameClearTimeout) clearTimeout(nameClearTimeout);
+  nameClearTimeout=setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000);
 }
 </script>
 </body>
