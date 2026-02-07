@@ -3,15 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <title>iPad Visitor Log</title>
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
-<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#34c759">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="logo.png">
 
 <style>
-/* ---------- Body ---------- */
+/* ==================== BASE ==================== */
 body {
   font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   background: #f2f2f7;
@@ -21,115 +23,182 @@ body {
   overflow: hidden;
 }
 
-/* Prevent scrolling when input focused */
 body.input-focused {
   overflow: hidden;
-  height: 100vh;
 }
 
-/* ---------- Layout ---------- */
+/* ==================== LAYOUT ==================== */
 .container {
   display: flex;
-  flex-direction: row;
-  max-width: 1000px;
-  margin: auto;
   gap: 15px;
+  max-width: 1000px;
   height: 90vh;
+  margin: auto;
 }
 
-/* Left column */
+.left-column,
+.right-column {
+  background: #fff;
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
 .left-column {
   flex: 2;
-  background: white;
-  padding: 15px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
 }
 
-/* Right column */
 .right-column {
   flex: 1;
-  background: white;
-  padding: 15px;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
   overflow-y: auto;
 }
 
-/* ---------- Typography & Inputs ---------- */
-h1 { text-align: center; font-size: 26px; margin-bottom: 10px; }
-h2 { margin-top: 15px; font-size: 20px; }
+/* ==================== TEXT & INPUT ==================== */
+h1 {
+  text-align: center;
+  font-size: 26px;
+  margin: 5px 0 10px;
+}
+
+h2 {
+  font-size: 20px;
+  margin: 15px 0 5px;
+}
+
 input {
   width: 100%;
   font-size: 22px;
   padding: 14px;
   border-radius: 12px;
   border: 1px solid #ccc;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   box-sizing: border-box;
 }
-#companyInput { font-size: 18px; }
-.buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+
+#companyInput {
+  font-size: 18px;
+}
+
+.buttons {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
 button {
   flex: 1;
   font-size: 20px;
   padding: 14px;
-  border: none;
   border-radius: 14px;
+  border: none;
   cursor: pointer;
-  min-width: 100px;
 }
-.sign-in { background: #34c759; color: white; }
-.sign-out { background: #ff3b30; color: white; }
-.export { font-size: 18px; padding: 10px 16px; border-radius: 12px; background: grey; color: white; border: none; cursor: pointer; }
-ul { list-style: none; padding: 0; overflow-y: auto; flex-grow: 1; }
-li { background: #f2f2f7; margin: 5px 0; padding: 10px 14px; border-radius: 10px; font-size: 18px; cursor: pointer; }
-li:active { background: #d1d1d6; }
 
-/* Previous visitor delete button */
+.sign-in { background: #34c759; color: #fff; }
+.sign-out { background: #ff3b30; color: #fff; }
+.export {
+  background: #8e8e93;
+  color: #fff;
+  font-size: 18px;
+  margin-top: 8px;
+}
+
+/* ==================== LISTS ==================== */
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+li {
+  background: #f2f2f7;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 5px 0;
+  font-size: 18px;
+  cursor: pointer;
+}
+
 .prev-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  width: 100%;
 }
-.prev-item span { flex: 1; cursor: pointer; }
+
+.prev-item span {
+  flex: 1;
+}
+
 .prev-item button {
   background: transparent;
   border: none;
+  font-size: 22px;
   color: #ff3b30;
-  font-size: 18px;
   cursor: pointer;
-  padding: 0 5px;
 }
-.prev-item button:hover { color: red; }
 
-/* ---------- Modals ---------- */
-#confirmModal, #passcodeModal, #exportConfirmModal { display:none; }
-.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); }
-.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
-.modal h3 { font-size: 22px; margin-bottom: 10px; }
-.modal-buttons { display: flex; gap: 10px; }
-.modal-buttons button { flex: 1; font-size: 20px; padding: 12px; border-radius: 12px; border: none; cursor: pointer; }
-.modal-buttons .yes { background: #34c759; color: white; }
-.modal-buttons .no { background: #ff3b30; color: white; }
+/* ==================== MODALS ==================== */
+.modal-wrap {
+  display: none;
+}
 
-@media(max-width: 900px) {
-  .container { flex-direction: column; height: auto; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 25px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.modal-buttons button {
+  flex: 1;
+  padding: 12px;
+  font-size: 20px;
+}
+
+.yes { background: #34c759; color: #fff; }
+.no  { background: #ff3b30; color: #fff; }
+
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column;
+    height: auto;
+  }
 }
 </style>
 </head>
+
 <body>
 
-<!-- ---------- Modals ---------- -->
-<div id="confirmModal">
+<!-- ==================== MODALS ==================== -->
+<div id="confirmModal" class="modal-wrap">
   <div class="modal-backdrop"></div>
   <div class="modal">
-    <h3>Induction Confirmation</h3>
-    <p>Have you been inducted?</p>
+    <h3>Have you been inducted?</h3>
     <div class="modal-buttons">
       <button class="yes" onclick="confirmInduction(true)">Yes</button>
       <button class="no" onclick="confirmInduction(false)">No</button>
@@ -137,23 +206,22 @@ li:active { background: #d1d1d6; }
   </div>
 </div>
 
-<div id="passcodeModal">
+<div id="passcodeModal" class="modal-wrap">
   <div class="modal-backdrop"></div>
   <div class="modal">
     <h3>Enter Passcode</h3>
-    <input type="password" id="passcodeInput" placeholder="Enter passcode" />
+    <input type="password" id="passcodeInput">
     <div class="modal-buttons">
       <button class="yes" onclick="checkPasscode()">Submit</button>
-      <button class="no" onclick="closePasscodeModal()">Cancel</button>
+      <button class="no" onclick="closeModal('passcodeModal')">Cancel</button>
     </div>
   </div>
 </div>
 
-<div id="exportConfirmModal">
+<div id="exportConfirmModal" class="modal-wrap">
   <div class="modal-backdrop"></div>
   <div class="modal">
-    <h3>Confirm Export</h3>
-    <p>Did the CSV download successfully?</p>
+    <h3>Did the CSV download?</h3>
     <div class="modal-buttons">
       <button class="yes" onclick="confirmExport(true)">Yes</button>
       <button class="no" onclick="confirmExport(false)">No</button>
@@ -161,104 +229,81 @@ li:active { background: #d1d1d6; }
   </div>
 </div>
 
-<!-- ---------- Main Container ---------- -->
+<!-- ==================== MAIN ==================== -->
 <div class="container">
-  <!-- Left Column -->
+
   <div class="left-column">
-    <img src="logo.png" alt="Logo" style="display:block; max-width:180px; margin:0 auto 10px;" />
+    <img src="logo.png" style="max-width:180px;margin:0 auto 8px;display:block">
     <h1>Project Argo CDM</h1>
-    <input id="nameInput" placeholder="Enter your name" />
-    <input id="companyInput" placeholder="Enter your company" />
+
+    <input id="nameInput" placeholder="Enter your name">
+    <input id="companyInput" placeholder="Enter your company">
+
     <div class="buttons">
       <button class="sign-in" onclick="signIn()">Sign In</button>
       <button class="sign-out" onclick="signOut()">Sign Out</button>
     </div>
+
     <h2>Currently Signed In</h2>
     <ul id="activeList"></ul>
-    <div class="footer">
-      <button class="export" onclick="requestExport()">Generate Report</button>
-    </div>
+
+    <button class="export" onclick="requestExport()">Generate Report</button>
   </div>
 
-  <!-- Right Column -->
   <div class="right-column">
     <h2>Previous Visitors</h2>
     <ul id="previousList"></ul>
   </div>
+
 </div>
 
-<!-- ---------- JavaScript ---------- -->
 <script>
-
-/* -------------------- State -------------------- */
+/* ==================== STATE ==================== */
 let visits = JSON.parse(localStorage.getItem("visits")) || [];
-let pendingSignInName = null;
-let pendingSignInCompany = null;
-let pendingAction = null;
-let nameClearTimeout = null;
+let previousVisitors = JSON.parse(localStorage.getItem("previousVisitors")) || [];
+let deletedVisitors = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
 
-/* -------------------- Elements -------------------- */
+let pendingName = "";
+let pendingCompany = "";
+let pendingAction = "";
+let clearTimer = null;
+
 const nameInput = document.getElementById("nameInput");
 const companyInput = document.getElementById("companyInput");
-const activeList = document.getElementById("activeList");
-const previousList = document.getElementById("previousList");
-const body = document.body;
 
-/* -------------------- Input Scroll Lock -------------------- */
-[nameInput, companyInput].forEach(input => {
-  input.addEventListener("focus", () => body.classList.add("input-focused"));
-  input.addEventListener("blur", () => body.classList.remove("input-focused"));
+/* ==================== INPUT FIX ==================== */
+[nameInput, companyInput].forEach(i => {
+  i.addEventListener("focus", () => document.body.classList.add("input-focused"));
+  i.addEventListener("blur", () => document.body.classList.remove("input-focused"));
+  i.addEventListener("input", resetClearTimer);
 });
 
-/* -------------------- Auto Clear Timer -------------------- */
-[nameInput, companyInput].forEach(input => {
-  input.addEventListener("input", resetNameClearTimer);
-  input.addEventListener("focus", resetNameClearTimer);
-});
-
-/* -------------------- Utilities -------------------- */
-function formatDate(d){
-  const date = new Date(d);
-  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")} ${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}`;
-}
-
-function resetNameClearTimer(){
-  if (nameClearTimeout) clearTimeout(nameClearTimeout);
-  nameClearTimeout = setTimeout(() => {
+/* ==================== UTIL ==================== */
+function resetClearTimer() {
+  clearTimeout(clearTimer);
+  clearTimer = setTimeout(() => {
     nameInput.value = "";
     companyInput.value = "";
   }, 10000);
 }
 
-/* -------------------- Persistence -------------------- */
-function save(){
+function saveAll() {
   localStorage.setItem("visits", JSON.stringify(visits));
-
-  let allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
-  let deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
-
-  visits.forEach(v => {
-    if (
-      !allPrev.some(p => p.name === v.name && p.company === v.company) &&
-      !deleted.some(d => d.name === v.name && d.company === v.company)
-    ) {
-      allPrev.push({ name: v.name, company: v.company });
-    }
-  });
-
-  localStorage.setItem("previousVisitors", JSON.stringify(allPrev));
-  render();
+  localStorage.setItem("previousVisitors", JSON.stringify(previousVisitors));
+  localStorage.setItem("deletedVisitors", JSON.stringify(deletedVisitors));
 }
 
+/* ==================== RENDER ==================== */
+function render() {
+  const activeList = document.getElementById("activeList");
+  const prevList = document.getElementById("previousList");
 
-/* -------------------- Render -------------------- */
-function render(){
   activeList.innerHTML = "";
-  previousList.innerHTML = "";
+  prevList.innerHTML = "";
 
-  const signedIn = visits.filter(v => !v.signOut);
+  const active = visits.filter(v => !v.signOut);
 
-  signedIn.forEach(v => {
+  active.forEach(v => {
     const li = document.createElement("li");
     li.textContent = `${v.name} (${v.company})`;
     li.onclick = () => {
@@ -268,146 +313,133 @@ function render(){
     activeList.appendChild(li);
   });
 
-  const allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
-const deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
+  previousVisitors
+    .filter(p =>
+      !active.some(v => v.name === p.name && v.company === p.company) &&
+      !deletedVisitors.some(d => d.name === p.name && d.company === p.company)
+    )
+    .forEach(p => {
+      const li = document.createElement("li");
+      li.className = "prev-item";
 
-const prev = allPrev.filter(p =>
-  !signedIn.some(v => v.name === p.name && v.company === p.company) &&
-  !deleted.some(d => d.name === p.name && d.company === p.company)
-);
+      const span = document.createElement("span");
+      span.textContent = `${p.name} (${p.company})`;
+      span.onclick = () => {
+        nameInput.value = p.name;
+        companyInput.value = p.company;
+      };
 
-prev.forEach(p => {
-  const li = document.createElement("li");
-  li.className = "prev-item";
+      const del = document.createElement("button");
+      del.textContent = "×";
+      del.onclick = e => {
+        e.stopPropagation();
+        deletedVisitors.push(p);
+        saveAll();
+        render();
+      };
 
-  const span = document.createElement("span");
-  span.textContent = `${p.name} (${p.company})`;
-  span.onclick = () => {
-    nameInput.value = p.name;
-    companyInput.value = p.company;
-  };
-
-  const del = document.createElement("button");
-  del.textContent = "×";
-  del.onclick = e => {
-    e.stopPropagation();
-    let deletedList = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
-    deletedList.push(p);
-    localStorage.setItem("deletedVisitors", JSON.stringify(deletedList));
-    render();
-  };
-
-  li.append(span, del);
-  previousList.appendChild(li);
-});
-
-      render();
-    };
-
-    li.append(span, del);
-    previousList.appendChild(li);
-  });
+      li.append(span, del);
+      prevList.appendChild(li);
+    });
 }
 
-/* -------------------- Sign In / Out -------------------- */
-function signIn(){
+/* ==================== SIGN IN / OUT ==================== */
+function signIn() {
   const name = nameInput.value.trim();
   const company = companyInput.value.trim();
   if (!name || !company) return alert("Enter name and company");
 
-  if (visits.find(v => v.name === name && v.company === company && !v.signOut)) {
+  if (visits.some(v => v.name === name && v.company === company && !v.signOut))
     return alert("Already signed in");
-  }
 
-  pendingSignInName = name;
-  pendingSignInCompany = company;
+  pendingName = name;
+  pendingCompany = company;
   openModal("confirmModal");
 }
 
-function confirmInduction(ok){
+function confirmInduction(ok) {
   closeModal("confirmModal");
   if (!ok) return;
 
   visits.push({
-    name: pendingSignInName,
-    company: pendingSignInCompany,
+    name: pendingName,
+    company: pendingCompany,
     signIn: new Date().toISOString(),
     signOut: null
   });
 
-  pendingSignInName = null;
-  pendingSignInCompany = null;
-  save();
+  if (!previousVisitors.some(p => p.name === pendingName && p.company === pendingCompany)) {
+    previousVisitors.push({ name: pendingName, company: pendingCompany });
+  }
+
+  saveAll();
+  render();
 }
 
-function signOut(){
-  const name = nameInput.value.trim();
-  const company = companyInput.value.trim();
-
+function signOut() {
   const v = visits.find(v =>
-    v.name === name && v.company === company && !v.signOut
+    v.name === nameInput.value.trim() &&
+    v.company === companyInput.value.trim() &&
+    !v.signOut
   );
 
   if (!v) return alert("Not signed in");
 
   v.signOut = new Date().toISOString();
-  save();
+  saveAll();
+  render();
 }
 
-/* -------------------- Export -------------------- */
-function requestExport(){
+/* ==================== EXPORT ==================== */
+function requestExport() {
   pendingAction = "export";
   openModal("passcodeModal");
-  document.getElementById("passcodeInput").value = "";
-  document.getElementById("passcodeInput").focus();
 }
 
-function checkPasscode(){
-  const p = document.getElementById("passcodeInput").value;
-  if (p !== "8877") return alert("Incorrect passcode");
+function checkPasscode() {
+  if (document.getElementById("passcodeInput").value !== "8877")
+    return alert("Incorrect passcode");
 
   closeModal("passcodeModal");
-  if (pendingAction === "export") exportCSV();
-  pendingAction = null;
+  exportCSV();
 }
 
-function exportCSV(){
+function exportCSV() {
   let csv = "Name,Company,Sign In,Sign Out\n";
   visits.forEach(v => {
-    csv += `${v.name},${v.company},${formatDate(v.signIn)},${v.signOut ? formatDate(v.signOut) : ""}\n`;
+    csv += `${v.name},${v.company},${v.signIn},${v.signOut || ""}\n`;
   });
 
   const blob = new Blob([csv], { type: "text/csv" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = "CDM_Visitor_Log.csv";
-  link.click();
-  URL.revokeObjectURL(link.href);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "CDM_Visitors.csv";
+  a.click();
 
   openModal("exportConfirmModal");
 }
 
-function confirmExport(ok){
+function confirmExport(ok) {
   closeModal("exportConfirmModal");
   if (!ok) return;
 
   visits = [];
-  localStorage.setItem("visits", JSON.stringify(visits));
+  saveAll();
   render();
 }
 
-/* -------------------- Modal Helpers -------------------- */
-function openModal(id){
-  body.classList.remove("input-focused");
+/* ==================== MODALS ==================== */
+function openModal(id) {
+  document.body.classList.remove("input-focused");
   document.getElementById(id).style.display = "block";
 }
 
-function closeModal(id){
+function closeModal(id) {
   document.getElementById(id).style.display = "none";
 }
 
-/* -------------------- Init -------------------- */
-window.onload = render;
+/* ==================== INIT ==================== */
+render();
 </script>
 
 </body>
