@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>iPad Visitor Log</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#34c759">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="logo.png">
+
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f2f2f7; margin: 0; padding: 20px; }
+.container { display: flex; flex-direction: row; max-width: 1200px; margin: auto; gap: 20px; height: 90vh; }
+
+/* Left column: Sign In/Out + Active */
+.left-column { flex: 2; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
+/* Right column: Previous visitors */
+.right-column { flex: 1; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow-y: auto; }
+
+h1 { text-align: center; font-size: 28px; margin-bottom: 15px; }
+input { width: 100%; font-size: 24px; padding: 16px; border-radius: 12px; border: 1px solid #ccc; margin-bottom: 15px; box-sizing: border-box; }
+#companyInput { font-size: 20px; }
+.buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+button { flex: 1; font-size: 22px; padding: 16px; border: none; border-radius: 14px; cursor: pointer; min-width: 120px; }
+.sign-in { background: #34c759; color: white; }
+.sign-out { background: #ff3b30; color: white; }
+h2 { margin-top: 20px; font-size: 22px; }
+ul { list-style: none; padding: 0; overflow-y: auto; flex-grow: 1; }
+li { background: #f2f2f7; margin: 6px 0; padding: 12px 16px; border-radius: 10px; font-size: 20px; cursor: pointer; }
+li:active { background: #d1d1d6; }
+.footer { margin-top: 10px; text-align: center; }
+.export { font-size: 20px; padding: 12px 18px; border-radius: 12px; background: grey; color: white; border: none; cursor: pointer; }
+
+/* Previous visitor delete button */
+.prev-item { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+.prev-item span { flex: 1; cursor: pointer; }
+.prev-item button { background: transparent; border: none; color: #ff3b30; font-size: 18px; cursor: pointer; padding: 0 5px; }
+.prev-item button:hover { color: red; }
+
+/* Modals */
+#confirmModal, #passcodeModal, #exportConfirmModal { display:none; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); }
+.modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
+.modal h3 { font-size: 24px; margin-bottom: 10px; }
+.modal-buttons { display: flex; gap: 10px; }
+.modal-buttons button { flex: 1; font-size: 22px; padding: 14px; border-radius: 12px; border: none; cursor: pointer; }
+.modal-buttons .yes { background: #34c759; color: white; }
+.modal-buttons .no { background: #ff3b30; color: white; }
+
+@media(max-width: 900px) { .container { flex-direction: column; height: auto; } }
+</style>
+</head>
+<body>
+
+<!-- Modals -->
+<div id="confirmModal">
+  <div class="modal-backdrop"></div>
+  <div class="modal">
+    <h3>Induction Confirmation</h3>
+    <p>Have you been inducted?</p>
+    <div class="modal-buttons">
+      <button class="yes" onclick="confirmInduction(true)">Yes</button>
+      <button class="no" onclick="confirmInduction(false)">No</button>
+    </div>
+  </div>
+</div>
+
+<div id="passcodeModal">
+  <div class="modal-backdrop"></div>
+  <div class="modal">
+    <h3>Enter Passcode</h3>
+    <input type="password" id="passcodeInput" placeholder="Enter passcode" />
+    <div class="modal-buttons">
+      <button class="yes" onclick="checkPasscode()">Submit</button>
+      <button class="no" onclick="closePasscodeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="exportConfirmModal">
+  <div class="modal-backdrop"></div>
+  <div class="modal">
+    <h3>Confirm Export</h3>
+    <p>Did the CSV download successfully?</p>
+    <div class="modal-buttons">
+      <button class="yes" onclick="confirmExport(true)">Yes</button>
+      <button class="no" onclick="confirmExport(false)">No</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+  <!-- Left column: Sign In / Active -->
+  <div class="left-column">
+    <h1>Project Argo CDM</h1>
+    <input id="nameInput" placeholder="Enter your name" />
+    <input id="companyInput" placeholder="Enter your company" />
+    <div class="buttons">
+      <button class="sign-in" onclick="signIn()">Sign In</button>
+      <button class="sign-out" onclick="signOut()">Sign Out</button>
+    </div>
+    <h2>Currently Signed In</h2>
+    <ul id="activeList"></ul>
+    <div class="footer">
+      <button class="export" onclick="requestExport()">Generate Report</button>
+    </div>
+  </div>
+
+  <!-- Right column: Previous Visitors -->
+  <div class="right-column">
+    <h2>Previous Visitors</h2>
+    <ul id="previousList"></ul>
+  </div>
+</div>
+
+<script>
+/* ----------------- State ----------------- */
+let visits = JSON.parse(localStorage.getItem("visits")) || [];
+let pendingSignInName = null;
+let pendingSignInCompany = null;
+let pendingAction = null;
+let nameClearTimeout = null;
+
+const nameInput = document.getElementById("nameInput");
+const companyInput = document.getElementById("companyInput");
+const activeList = document.getElementById("activeList");
+const previousList = document.getElementById("previousList");
+
+window.addEventListener("load", () => { render(); });
+nameInput.addEventListener("input", resetNameClearTimer);
+nameInput.addEventListener("focus", resetNameClearTimer);
+
+/* ----------------- Utilities ----------------- */
+function formatDate(d) {
+  const date = new Date(d);
+  return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")} ${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}`;
+}
+
+/* ----------------- Save Visits ----------------- */
+function save() {
+  localStorage.setItem("visits", JSON.stringify(visits));
+  
+  let allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
+  let deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
+
+  visits.forEach(v => {
+    if(!allPrev.includes(v.name) && !deleted.includes(v.name)) {
+      allPrev.push(v.name);
+    }
+  });
+
+  localStorage.setItem("previousVisitors", JSON.stringify(allPrev));
+  nameInput.value = "";
+  companyInput.value = "";
+  render();
+}
+
+/* ----------------- Render ----------------- */
+function render() {
+  // Active visitors
+  activeList.innerHTML = "";
+  const signedIn = visits.filter(v => !v.signOut);
+  signedIn.forEach(v => {
+    const li = document.createElement("li");
+    li.textContent = `${v.name} (${v.company})`;
+    li.addEventListener("click", ()=>{ nameInput.value=v.name; companyInput.value=v.company; });
+    activeList.appendChild(li);
+  });
+
+  // Previous visitors
+  previousList.innerHTML = "";
+  const allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
+  const deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
+  const prev = allPrev.filter(name => !signedIn.some(v => v.name===name))
+                     .filter(name => !deleted.includes(name));
+
+  prev.forEach(name => {
+    const last = visits.slice().reverse().find(v => v.name===name);
+    const company = last ? last.company : "";
+
+    const li = document.createElement("li");
+    li.className = "prev-item";
+
+    const span = document.createElement("span");
+    span.textContent = `${name} (${company})`;
+    span.addEventListener("click", ()=>{ nameInput.value=name; companyInput.value=company; });
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "×";
+    delBtn.title = "Delete visitor";
+    delBtn.addEventListener("click", e=>{
+      e.stopPropagation();
+      // Add to deletedVisitors
+      let deletedList = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
+      if(!deletedList.includes(name)) deletedList.push(name);
+      localStorage.setItem("deletedVisitors", JSON.stringify(deletedList));
+
+      // Remove from previousVisitors
+      const updated = allPrev.filter(n=>n!==name);
+      localStorage.setItem("previousVisitors", JSON.stringify(updated));
+      render();
+    });
+
+    li.appendChild(span);
+    li.appendChild(delBtn);
+    previousList.appendChild(li);
+  });
+}
+
+/* ----------------- Sign In / Out ----------------- */
+function signIn() {
+  const name = nameInput.value.trim();
+  const company = companyInput.value.trim();
+  if(!name) return alert("Enter your name");
+  if(!company) return alert("Enter your company");
+  if(visits.find(v => v.name===name && !v.signOut)) return alert("Already signed in");
+  pendingSignInName = name;
+  pendingSignInCompany = company;
+  document.getElementById("confirmModal").style.display = "block";
+}
+
+function confirmInduction(conf) {
+  document.getElementById("confirmModal").style.display = "none";
+  if(!conf){ pendingSignInName=null; pendingSignInCompany=null; return; }
+  visits.push({ name: pendingSignInName, company: pendingSignInCompany, signIn: new Date().toISOString(), signOut:null });
+  pendingSignInName=null; pendingSignInCompany=null;
+  save();
+}
+
+function signOut() {
+  const name = nameInput.value.trim();
+  if(!name) return alert("Enter your name");
+  const v = visits.find(v=>v.name===name && !v.signOut);
+  if(!v) return alert("Not signed in");
+  v.signOut = new Date().toISOString();
+  save();
+}
+
+/* ----------------- Export ----------------- */
+function requestExport() { 
+  pendingAction="export"; 
+  document.getElementById("passcodeModal").style.display="block"; 
+  document.getElementById("passcodeInput").value=""; 
+  document.getElementById("passcodeInput").focus();
+}
+function closePasscodeModal(){ document.getElementById("passcodeModal").style.display="none";}
+function checkPasscode(){ 
+  const p=document.getElementById("passcodeInput").value; 
+  if(p!=="8877"){ alert("Incorrect"); document.getElementById("passcodeInput").value=""; return;} 
+  closePasscodeModal(); 
+  if(pendingAction==="export") exportCSV(); 
+  pendingAction=null;
+}
+function exportCSV(){ 
+  let csv="Name,Company,Sign In,Sign Out\n";
+  visits.forEach(v=>csv+=`${v.name},${v.company},${formatDate(v.signIn)},${v.signOut?formatDate(v.signOut):""}\n`);
+  const ts=new Date();
+  const filename=`CDM Visitors Log_${ts.getFullYear()}-${String(ts.getMonth()+1).padStart(2,"0")}-${String(ts.getDate()).padStart(2,"0")}_${String(ts.getHours()).padStart(2,"0")}-${String(ts.getMinutes()).padStart(2,"0")}-${String(ts.getSeconds()).padStart(2,"0")}.csv`;
+  const blob=new Blob([csv],{type:"text/csv"}); 
+  const link=document.createElement("a"); 
+  link.href=URL.createObjectURL(blob); 
+  link.download=filename; 
+  link.click(); 
+  URL.revokeObjectURL(link.href);
+  document.getElementById("exportConfirmModal").style.display="block"; 
+}
+function confirmExport(success){ 
+  document.getElementById("exportConfirmModal").style.display="none"; 
+  if(!success){ alert("Export cancelled"); return;} 
+  visits=[]; 
+  localStorage.setItem("visits", JSON.stringify(visits)); 
+  render(); 
+  alert("Export done, previous visitors retained."); 
+}
+
+/* ----------------- Clear Inputs ----------------- */
+function resetNameClearTimer(){ 
+  if(nameClearTimeout) clearTimeout(nameClearTimeout); 
+  nameClearTimeout = setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000); 
+}
+</script>
+
+<script>
+// --- Service Worker Registration ---
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('Service Worker registered with scope:', reg.scope))
+      .catch(err => console.log('Service Worker registration failed:', err));
+  });
+}
+</script>
+
+</body>
+</html>
