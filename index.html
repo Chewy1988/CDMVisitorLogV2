@@ -4,50 +4,48 @@
 <meta charset="UTF-8">
 <title>iPad Visitor Log</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<meta name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#34c759">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="logo.png">
 
 <style>
-/* ==================== BASE ==================== */
+/* ------------------ Base ------------------ */
 body {
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f2f2f7;
   margin: 0;
   padding: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f2f2f7;
   height: 100vh;
   overflow: hidden;
 }
+body.input-focused { overflow: hidden; }
 
-body.input-focused {
-  overflow: hidden;
-}
-
-/* ==================== LAYOUT ==================== */
+/* ------------------ Layout ------------------ */
 .container {
-  display: flex;
-  gap: 15px;
   max-width: 1000px;
   height: 90vh;
   margin: auto;
+  display: flex;
+  gap: 15px;
 }
 
-.left-column,
-.right-column {
-  background: #fff;
+.left-column, .right-column {
+  background: white;
   border-radius: 20px;
   padding: 15px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  box-shadow: 0 10px 25px rgba(0,0,0,.1);
 }
 
 .left-column {
   flex: 2;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .right-column {
@@ -55,154 +53,116 @@ body.input-focused {
   overflow-y: auto;
 }
 
-/* ==================== TEXT & INPUT ==================== */
-h1 {
-  text-align: center;
-  font-size: 26px;
-  margin: 5px 0 10px;
-}
-
-h2 {
-  font-size: 20px;
-  margin: 15px 0 5px;
-}
+/* ------------------ Typography ------------------ */
+h1 { text-align: center; font-size: 26px; margin: 10px 0; }
+h2 { font-size: 20px; margin: 12px 0; }
 
 input {
   width: 100%;
-  font-size: 22px;
   padding: 14px;
+  font-size: 22px;
   border-radius: 12px;
   border: 1px solid #ccc;
-  margin-bottom: 10px;
-  box-sizing: border-box;
+  margin-bottom: 12px;
 }
-
-#companyInput {
-  font-size: 18px;
-}
+#companyInput { font-size: 18px; }
 
 .buttons {
   display: flex;
   gap: 8px;
-  margin-bottom: 10px;
 }
 
 button {
-  flex: 1;
-  font-size: 20px;
   padding: 14px;
+  font-size: 20px;
   border-radius: 14px;
   border: none;
   cursor: pointer;
 }
 
-.sign-in { background: #34c759; color: #fff; }
-.sign-out { background: #ff3b30; color: #fff; }
-.export {
-  background: #8e8e93;
-  color: #fff;
-  font-size: 18px;
-  margin-top: 8px;
-}
+.sign-in { background: #34c759; color: white; }
+.sign-out { background: #ff3b30; color: white; }
 
-/* ==================== LISTS ==================== */
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  flex-grow: 1;
-  overflow-y: auto;
-}
-
+/* ------------------ Lists ------------------ */
+ul { list-style: none; padding: 0; margin: 0; }
 li {
   background: #f2f2f7;
-  border-radius: 10px;
+  margin: 6px 0;
   padding: 10px 14px;
-  margin: 5px 0;
+  border-radius: 10px;
   font-size: 18px;
   cursor: pointer;
 }
 
+/* Previous visitor row */
 .prev-item {
   display: flex;
+  justify-content: space-between;
   align-items: center;
 }
-
-.prev-item span {
-  flex: 1;
-}
-
+.prev-item span { flex: 1; }
 .prev-item button {
   background: transparent;
   border: none;
-  font-size: 22px;
   color: #ff3b30;
+  font-size: 20px;
   cursor: pointer;
 }
 
-/* ==================== MODALS ==================== */
-.modal-wrap {
-  display: none;
+/* ------------------ Fixed Export Button ------------------ */
+.export {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 110px;
+  height: 44px;
+  font-size: 14px;
+  border-radius: 10px;
+  background: #8e8e93;
+  color: white;
 }
+.export:active { transform: scale(.97); }
 
+/* ------------------ Modals ------------------ */
+.modal-wrap { display:none; }
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,.4);
 }
-
 .modal {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
+  transform: translate(-50%,-50%);
+  background: white;
   padding: 25px;
   border-radius: 16px;
   width: 90%;
   max-width: 400px;
   text-align: center;
 }
-
-.modal h3 {
-  font-size: 22px;
-  margin-bottom: 10px;
+.modal button {
+  width: 100%;
+  margin-top: 10px;
 }
 
-.modal-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.modal-buttons button {
-  flex: 1;
-  padding: 12px;
-  font-size: 20px;
-}
-
-.yes { background: #34c759; color: #fff; }
-.no  { background: #ff3b30; color: #fff; }
-
-@media (max-width: 900px) {
-  .container {
-    flex-direction: column;
-    height: auto;
-  }
+/* ------------------ Mobile ------------------ */
+@media(max-width:900px){
+  .container { flex-direction: column; height: auto; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- ==================== MODALS ==================== -->
+<!-- ------------------ Modals ------------------ -->
 <div id="confirmModal" class="modal-wrap">
   <div class="modal-backdrop"></div>
   <div class="modal">
     <h3>Have you been inducted?</h3>
-    <div class="modal-buttons">
-      <button class="yes" onclick="confirmInduction(true)">Yes</button>
-      <button class="no" onclick="confirmInduction(false)">No</button>
-    </div>
+    <button class="sign-in" onclick="confirmInduction(true)">Yes</button>
+    <button class="sign-out" onclick="confirmInduction(false)">No</button>
   </div>
 </div>
 
@@ -210,34 +170,21 @@ li {
   <div class="modal-backdrop"></div>
   <div class="modal">
     <h3>Enter Passcode</h3>
-    <input type="password" id="passcodeInput">
-    <div class="modal-buttons">
-      <button class="yes" onclick="checkPasscode()">Submit</button>
-      <button class="no" onclick="closeModal('passcodeModal')">Cancel</button>
-    </div>
+    <input id="passcodeInput" type="password">
+    <button class="sign-in" onclick="checkPasscode()">Submit</button>
+    <button class="sign-out" onclick="closeModal('passcodeModal')">Cancel</button>
   </div>
 </div>
 
-<div id="exportConfirmModal" class="modal-wrap">
-  <div class="modal-backdrop"></div>
-  <div class="modal">
-    <h3>Did the CSV download?</h3>
-    <div class="modal-buttons">
-      <button class="yes" onclick="confirmExport(true)">Yes</button>
-      <button class="no" onclick="confirmExport(false)">No</button>
-    </div>
-  </div>
-</div>
-
-<!-- ==================== MAIN ==================== -->
+<!-- ------------------ App ------------------ -->
 <div class="container">
 
   <div class="left-column">
-    <img src="logo.png" style="max-width:180px;margin:0 auto 8px;display:block">
+    <img src="logo.png" style="max-width:180px;margin:auto;">
     <h1>Project Argo CDM</h1>
 
-    <input id="nameInput" placeholder="Enter your name">
-    <input id="companyInput" placeholder="Enter your company">
+    <input id="nameInput" placeholder="Name">
+    <input id="companyInput" placeholder="Company">
 
     <div class="buttons">
       <button class="sign-in" onclick="signIn()">Sign In</button>
@@ -247,7 +194,7 @@ li {
     <h2>Currently Signed In</h2>
     <ul id="activeList"></ul>
 
-    <button class="export" onclick="requestExport()">Generate Report</button>
+    <button class="export" onclick="requestExport()">Report</button>
   </div>
 
   <div class="right-column">
@@ -258,187 +205,112 @@ li {
 </div>
 
 <script>
-/* ==================== STATE ==================== */
-let visits = JSON.parse(localStorage.getItem("visits")) || [];
-let previousVisitors = JSON.parse(localStorage.getItem("previousVisitors")) || [];
-let deletedVisitors = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
-
-let pendingName = "";
-let pendingCompany = "";
-let pendingAction = "";
-let clearTimer = null;
+/* ------------------ Storage ------------------ */
+let visits = JSON.parse(localStorage.getItem("visits") || "[]");
+let previous = JSON.parse(localStorage.getItem("previousVisitors") || "[]");
+let deleted = JSON.parse(localStorage.getItem("deletedVisitors") || "[]");
 
 const nameInput = document.getElementById("nameInput");
 const companyInput = document.getElementById("companyInput");
 
-/* ==================== INPUT FIX ==================== */
-[nameInput, companyInput].forEach(i => {
-  i.addEventListener("focus", () => document.body.classList.add("input-focused"));
-  i.addEventListener("blur", () => document.body.classList.remove("input-focused"));
-  i.addEventListener("input", resetClearTimer);
+/* Prevent scroll on keyboard */
+[nameInput, companyInput].forEach(i=>{
+  i.onfocus=()=>document.body.classList.add("input-focused");
+  i.onblur=()=>document.body.classList.remove("input-focused");
 });
 
-/* ==================== UTIL ==================== */
-function resetClearTimer() {
-  clearTimeout(clearTimer);
-  clearTimer = setTimeout(() => {
-    nameInput.value = "";
-    companyInput.value = "";
-  }, 10000);
+/* ------------------ Helpers ------------------ */
+function save(){
+  localStorage.setItem("visits",JSON.stringify(visits));
+  localStorage.setItem("previousVisitors",JSON.stringify(previous));
+  localStorage.setItem("deletedVisitors",JSON.stringify(deleted));
+  render();
 }
 
-function saveAll() {
-  localStorage.setItem("visits", JSON.stringify(visits));
-  localStorage.setItem("previousVisitors", JSON.stringify(previousVisitors));
-  localStorage.setItem("deletedVisitors", JSON.stringify(deletedVisitors));
-}
+function openModal(id){ document.getElementById(id).style.display="block"; }
+function closeModal(id){ document.getElementById(id).style.display="none"; }
 
-/* ==================== RENDER ==================== */
-function render() {
-  const activeList = document.getElementById("activeList");
-  const prevList = document.getElementById("previousList");
+/* ------------------ Render ------------------ */
+function render(){
+  activeList.innerHTML="";
+  previousList.innerHTML="";
 
-  activeList.innerHTML = "";
-  prevList.innerHTML = "";
+  const signedIn = visits.filter(v=>!v.out);
 
-  const active = visits.filter(v => !v.signOut);
-
-  active.forEach(v => {
-    const li = document.createElement("li");
-    li.textContent = `${v.name} (${v.company})`;
-    li.onclick = () => {
-      nameInput.value = v.name;
-      companyInput.value = v.company;
-    };
+  signedIn.forEach(v=>{
+    const li=document.createElement("li");
+    li.textContent=`${v.name} (${v.company})`;
+    li.onclick=()=>{ nameInput.value=v.name; companyInput.value=v.company; };
     activeList.appendChild(li);
   });
 
-  previousVisitors
-    .filter(p =>
-      !active.some(v => v.name === p.name && v.company === p.company) &&
-      !deletedVisitors.some(d => d.name === p.name && d.company === p.company)
-    )
-    .forEach(p => {
-      const li = document.createElement("li");
-      li.className = "prev-item";
+  previous
+    .filter(n=>!signedIn.some(v=>v.name===n))
+    .filter(n=>!deleted.includes(n))
+    .forEach(name=>{
+      const v=[...visits].reverse().find(x=>x.name===name);
+      const li=document.createElement("li");
+      li.className="prev-item";
 
-      const span = document.createElement("span");
-      span.textContent = `${p.name} (${p.company})`;
-      span.onclick = () => {
-        nameInput.value = p.name;
-        companyInput.value = p.company;
-      };
+      const span=document.createElement("span");
+      span.textContent=`${name} (${v?.company||""})`;
 
-      const del = document.createElement("button");
-      del.textContent = "×";
-      del.onclick = e => {
+      const del=document.createElement("button");
+      del.textContent="×";
+      del.onclick=e=>{
         e.stopPropagation();
-        deletedVisitors.push(p);
-        saveAll();
-        render();
+        deleted.push(name);
+        save();
       };
 
-      li.append(span, del);
-      prevList.appendChild(li);
+      li.append(span,del);
+      previousList.appendChild(li);
     });
 }
 
-/* ==================== SIGN IN / OUT ==================== */
-function signIn() {
-  const name = nameInput.value.trim();
-  const company = companyInput.value.trim();
-  if (!name || !company) return alert("Enter name and company");
-
-  if (visits.some(v => v.name === name && v.company === company && !v.signOut))
-    return alert("Already signed in");
-
-  pendingName = name;
-  pendingCompany = company;
+/* ------------------ Actions ------------------ */
+function signIn(){
+  const n=nameInput.value.trim();
+  const c=companyInput.value.trim();
+  if(!n||!c) return alert("Enter name and company");
   openModal("confirmModal");
+  window._pending={n,c};
 }
 
-function confirmInduction(ok) {
+function confirmInduction(ok){
   closeModal("confirmModal");
-  if (!ok) return;
-
-  visits.push({
-    name: pendingName,
-    company: pendingCompany,
-    signIn: new Date().toISOString(),
-    signOut: null
-  });
-
-  if (!previousVisitors.some(p => p.name === pendingName && p.company === pendingCompany)) {
-    previousVisitors.push({ name: pendingName, company: pendingCompany });
-  }
-
-  saveAll();
-  render();
+  if(!ok) return;
+  visits.push({name:_pending.n,company:_pending.c,in:new Date(),out:null});
+  if(!previous.includes(_pending.n)) previous.push(_pending.n);
+  nameInput.value=""; companyInput.value="";
+  save();
 }
 
-function signOut() {
-  const v = visits.find(v =>
-    v.name === nameInput.value.trim() &&
-    v.company === companyInput.value.trim() &&
-    !v.signOut
-  );
-
-  if (!v) return alert("Not signed in");
-
-  v.signOut = new Date().toISOString();
-  saveAll();
-  render();
+function signOut(){
+  const v=visits.find(x=>x.name===nameInput.value && !x.out);
+  if(!v) return alert("Not signed in");
+  v.out=new Date();
+  save();
 }
 
-/* ==================== EXPORT ==================== */
-function requestExport() {
-  pendingAction = "export";
+/* ------------------ Export ------------------ */
+function requestExport(){
   openModal("passcodeModal");
 }
-
-function checkPasscode() {
-  if (document.getElementById("passcodeInput").value !== "8877")
-    return alert("Incorrect passcode");
-
+function checkPasscode(){
+  if(passcodeInput.value!=="8877") return alert("Wrong passcode");
   closeModal("passcodeModal");
-  exportCSV();
-}
-
-function exportCSV() {
-  let csv = "Name,Company,Sign In,Sign Out\n";
-  visits.forEach(v => {
-    csv += `${v.name},${v.company},${v.signIn},${v.signOut || ""}\n`;
+  let csv="Name,Company,In,Out\n";
+  visits.forEach(v=>{
+    csv+=`${v.name},${v.company},${v.in},${v.out||""}\n`;
   });
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "CDM_Visitors.csv";
+  const b=new Blob([csv]);
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(b);
+  a.download="visitors.csv";
   a.click();
-
-  openModal("exportConfirmModal");
 }
 
-function confirmExport(ok) {
-  closeModal("exportConfirmModal");
-  if (!ok) return;
-
-  visits = [];
-  saveAll();
-  render();
-}
-
-/* ==================== MODALS ==================== */
-function openModal(id) {
-  document.body.classList.remove("input-focused");
-  document.getElementById(id).style.display = "block";
-}
-
-function closeModal(id) {
-  document.getElementById(id).style.display = "none";
-}
-
-/* ==================== INIT ==================== */
 render();
 </script>
 
