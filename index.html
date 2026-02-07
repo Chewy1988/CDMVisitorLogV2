@@ -277,10 +277,20 @@ function confirmExport(success){
 }
 
 /* ----------------- Clear Inputs ----------------- */
+/* Clear inputs after 10s */
 function resetNameClearTimer(){ 
   if(nameClearTimeout) clearTimeout(nameClearTimeout); 
-  nameClearTimeout = setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000); 
+  nameClearTimeout=setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000);
 }
+
+/* Prevent layout jump on iPad when focusing inputs */
+const inputs = document.querySelectorAll('input');
+inputs.forEach(input => {
+  input.addEventListener('focus', () => {
+    setTimeout(() => window.scrollTo(0, 0), 50);
+  });
+});
+
 </script>
 
 <script>
