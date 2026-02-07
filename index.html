@@ -16,8 +16,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #
 
 /* Left column: Sign In/Out + Active */
 .left-column { flex: 2; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: flex; flex-direction: column; }
-/* Right column: Previous visitors */
 .right-column { flex: 1; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow-y: auto; }
+
+img.logo { display: block; max-width: 200px; margin: 0 auto 15px; height: auto; }
 
 h1 { text-align: center; font-size: 28px; margin-bottom: 15px; }
 input { width: 100%; font-size: 24px; padding: 16px; border-radius: 12px; border: 1px solid #ccc; margin-bottom: 15px; box-sizing: border-box; }
@@ -93,8 +94,9 @@ li:active { background: #d1d1d6; }
 
 <!-- Main Container -->
 <div class="container">
-  <!-- Left column: Sign In / Active -->
+  <!-- Left column -->
   <div class="left-column">
+    <img class="logo" src="logo.png" alt="Company Logo" />
     <h1>Project Argo CDM</h1>
     <input id="nameInput" placeholder="Enter your name" />
     <input id="companyInput" placeholder="Enter your company" />
@@ -109,7 +111,7 @@ li:active { background: #d1d1d6; }
     </div>
   </div>
 
-  <!-- Right column: Previous Visitors -->
+  <!-- Right column -->
   <div class="right-column">
     <h2>Previous Visitors</h2>
     <ul id="previousList"></ul>
@@ -129,68 +131,66 @@ const companyInput = document.getElementById("companyInput");
 const activeList = document.getElementById("activeList");
 const previousList = document.getElementById("previousList");
 
-window.addEventListener("load", () => { render(); });
+window.addEventListener("load", () => { render(); adjustContainerHeight(); });
 nameInput.addEventListener("input", resetNameClearTimer);
 nameInput.addEventListener("focus", resetNameClearTimer);
+companyInput.addEventListener("focus", adjustContainerHeight);
+companyInput.addEventListener("input", adjustContainerHeight);
 
 /* ----------------- Utilities ----------------- */
-function formatDate(d) {
+function formatDate(d){
   const date = new Date(d);
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")} ${String(date.getHours()).padStart(2,"0")}:${String(date.getMinutes()).padStart(2,"0")}`;
 }
 
 /* ----------------- Save Visits ----------------- */
-function save() {
+function save(){
   localStorage.setItem("visits", JSON.stringify(visits));
-  
   let allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
   let deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
 
   visits.forEach(v => {
-    if(!allPrev.includes(v.name) && !deleted.includes(v.name)) {
-      allPrev.push(v.name);
-    }
+    if(!allPrev.includes(v.name) && !deleted.includes(v.name)) allPrev.push(v.name);
   });
 
   localStorage.setItem("previousVisitors", JSON.stringify(allPrev));
-  nameInput.value = "";
-  companyInput.value = "";
+  nameInput.value=""; companyInput.value="";
   render();
 }
 
 /* ----------------- Render ----------------- */
-function render() {
+function render(){
   // Active visitors
-  activeList.innerHTML = "";
-  const signedIn = visits.filter(v => !v.signOut);
-  signedIn.forEach(v => {
-    const li = document.createElement("li");
-    li.textContent = `${v.name} (${v.company})`;
+  activeList.innerHTML="";
+  const signedIn = visits.filter(v=>!v.signOut);
+  signedIn.forEach(v=>{
+    const li=document.createElement("li");
+    li.textContent=`${v.name} (${v.company})`;
     li.addEventListener("click", ()=>{ nameInput.value=v.name; companyInput.value=v.company; });
     activeList.appendChild(li);
   });
 
   // Previous visitors
-  previousList.innerHTML = "";
+  previousList.innerHTML="";
   const allPrev = JSON.parse(localStorage.getItem("previousVisitors")) || [];
   const deleted = JSON.parse(localStorage.getItem("deletedVisitors")) || [];
   const prev = allPrev.filter(name => !signedIn.some(v => v.name===name))
                      .filter(name => !deleted.includes(name));
 
-  prev.forEach(name => {
-    const last = visits.slice().reverse().find(v => v.name===name);
+  prev.forEach(name=>{
+    const last = visits.slice().reverse().find(v=>v.name===name);
     const company = last ? last.company : "";
 
-    const li = document.createElement("li");
-    li.className = "prev-item";
+    const li=document.createElement("li");
+    li.className="prev-item";
 
-    const span = document.createElement("span");
-    span.textContent = `${name} (${company})`;
+    const span=document.createElement("span");
+    span.textContent=`${name} (${company})`;
     span.addEventListener("click", ()=>{ nameInput.value=name; companyInput.value=company; });
 
-    const delBtn = document.createElement("button");
-    delBtn.textContent = "×";
-    delBtn.title = "Delete visitor";
+    const delBtn=document.createElement("button");
+    delBtn.textContent="×";
+    delBtn.title="Delete visitor";
     delBtn.addEventListener("click", e=>{
       e.stopPropagation();
       // Add to deletedVisitors
@@ -211,49 +211,37 @@ function render() {
 }
 
 /* ----------------- Sign In / Out ----------------- */
-function signIn() {
-  const name = nameInput.value.trim();
-  const company = companyInput.value.trim();
+function signIn(){
+  const name=nameInput.value.trim();
+  const company=companyInput.value.trim();
   if(!name) return alert("Enter your name");
   if(!company) return alert("Enter your company");
-  if(visits.find(v => v.name===name && !v.signOut)) return alert("Already signed in");
-  pendingSignInName = name;
-  pendingSignInCompany = company;
-  document.getElementById("confirmModal").style.display = "block";
+  if(visits.find(v=>v.name===name && !v.signOut)) return alert("Already signed in");
+  pendingSignInName=name; pendingSignInCompany=company;
+  document.getElementById("confirmModal").style.display="block";
 }
 
-function confirmInduction(conf) {
-  document.getElementById("confirmModal").style.display = "none";
+function confirmInduction(conf){
+  document.getElementById("confirmModal").style.display="none";
   if(!conf){ pendingSignInName=null; pendingSignInCompany=null; return; }
-  visits.push({ name: pendingSignInName, company: pendingSignInCompany, signIn: new Date().toISOString(), signOut:null });
+  visits.push({ name:pendingSignInName, company:pendingSignInCompany, signIn:new Date().toISOString(), signOut:null });
   pendingSignInName=null; pendingSignInCompany=null;
   save();
 }
 
-function signOut() {
-  const name = nameInput.value.trim();
+function signOut(){
+  const name=nameInput.value.trim();
   if(!name) return alert("Enter your name");
-  const v = visits.find(v=>v.name===name && !v.signOut);
+  const v=visits.find(v=>v.name===name && !v.signOut);
   if(!v) return alert("Not signed in");
-  v.signOut = new Date().toISOString();
+  v.signOut=new Date().toISOString();
   save();
 }
 
 /* ----------------- Export ----------------- */
-function requestExport() { 
-  pendingAction="export"; 
-  document.getElementById("passcodeModal").style.display="block"; 
-  document.getElementById("passcodeInput").value=""; 
-  document.getElementById("passcodeInput").focus();
-}
-function closePasscodeModal(){ document.getElementById("passcodeModal").style.display="none";}
-function checkPasscode(){ 
-  const p=document.getElementById("passcodeInput").value; 
-  if(p!=="8877"){ alert("Incorrect"); document.getElementById("passcodeInput").value=""; return;} 
-  closePasscodeModal(); 
-  if(pendingAction==="export") exportCSV(); 
-  pendingAction=null;
-}
+function requestExport(){ pendingAction="export"; document.getElementById("passcodeModal").style.display="block"; document.getElementById("passcodeInput").value=""; document.getElementById("passcodeInput").focus(); }
+function closePasscodeModal(){ document.getElementById("passcodeModal").style.display="none"; }
+function checkPasscode(){ const p=document.getElementById("passcodeInput").value; if(p!=="8877"){ alert("Incorrect"); document.getElementById("passcodeInput").value=""; return;} closePasscodeModal(); if(pendingAction==="export") exportCSV(); pendingAction=null; }
 function exportCSV(){ 
   let csv="Name,Company,Sign In,Sign Out\n";
   visits.forEach(v=>csv+=`${v.name},${v.company},${formatDate(v.signIn)},${v.signOut?formatDate(v.signOut):""}\n`);
@@ -270,17 +258,20 @@ function exportCSV(){
 function confirmExport(success){ 
   document.getElementById("exportConfirmModal").style.display="none"; 
   if(!success){ alert("Export cancelled"); return;} 
-  visits=[]; 
-  localStorage.setItem("visits", JSON.stringify(visits)); 
-  render(); 
+  visits=[]; localStorage.setItem("visits", JSON.stringify(visits)); render(); 
   alert("Export done, previous visitors retained."); 
 }
 
-/* ----------------- Clear Inputs ----------------- */
-function resetNameClearTimer(){ 
-  if(nameClearTimeout) clearTimeout(nameClearTimeout); 
-  nameClearTimeout = setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000); 
+/* ----------------- Input Clear ----------------- */
+function resetNameClearTimer(){ if(nameClearTimeout) clearTimeout(nameClearTimeout); nameClearTimeout=setTimeout(()=>{ nameInput.value=""; companyInput.value=""; },10000); }
+
+/* ----------------- iPad Keyboard Fix ----------------- */
+function adjustContainerHeight(){
+  const container = document.querySelector('.container');
+  container.style.height = `${window.innerHeight - 40}px`;
 }
+window.addEventListener('resize', adjustContainerHeight);
+window.addEventListener('orientationchange', adjustContainerHeight);
 </script>
 </body>
 </html>
