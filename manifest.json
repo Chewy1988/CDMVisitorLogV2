@@ -1,10 +1,11 @@
 {
-  "name": "iPad Visitor Log",
-  "short_name": "VisitorLog",
-  "start_url": "./index.html",
+  "name": "CDM Visitor Log",
+  "short_name": "Visitor Log",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#f2f2f7",
   "theme_color": "#34c759",
+  "orientation": "landscape",
   "icons": [
     {
       "src": "logo.png",
