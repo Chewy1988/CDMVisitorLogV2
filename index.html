@@ -1,304 +1,1217 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>iPad Visitor Log</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <title>iPad Visitor Log</title>
 
-<!-- PWA Manifest -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#34c759">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#34c759" />
 
-<!-- iOS PWA Support -->
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="logo.png">
+  <link rel="manifest" href="manifest.json" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" href="logo.png" />
 
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f2f2f7; margin: 0; padding: 50px 20px; }
-  .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-  h1 { text-align: center; font-size: 32px; margin-bottom: 25px; }
-  input { width: 100%; font-size: 24px; padding: 18px; border-radius: 12px; border: 1px solid #ccc; margin-bottom: 20px; box-sizing: border-box; }
-  .buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
-  button { flex: 1; font-size: 24px; padding: 20px; border: none; border-radius: 14px; cursor: pointer; min-width: 120px; }
-  .sign-in { background: #34c759; color: white; }
-  .sign-out { background: #ff3b30; color: white; }
-  h2 { margin-top: 30px; font-size: 24px; }
-  ul { list-style: none; padding: 0; max-height: 520px; overflow-y: auto; }
-  li { background: #f2f2f7; margin: 8px 0; padding: 12px 16px; border-radius: 10px; font-size: 20px; cursor: pointer; }
-  li:active { background: #d1d1d6; }
-  .footer { margin-top: 30px; text-align: center; }
-  .export { font-size: 20px; padding: 14px 20px; border-radius: 12px; background: grey; color: white; border: none; cursor: pointer; }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  /* Modals */
-  #confirmModal, #passcodeModal { display:none; }
-  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.4); }
-  .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 16px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
-  .modal h3 { font-size: 24px; margin-bottom: 10px; }
-  .modal-buttons { display: flex; gap: 10px; }
-  .modal-buttons button { flex: 1; font-size: 22px; padding: 14px; border-radius: 12px; border: none; cursor: pointer; }
-  .modal-buttons .yes { background: #34c759; color: white; }
-  .modal-buttons .no { background: #ff3b30; color: white; }
-</style>
+  <style>
+    :root{
+      --muted: #6b7280;
+      --radius: 20px;
+
+      --sat: env(safe-area-inset-top);
+      --sar: env(safe-area-inset-right);
+      --sab: env(safe-area-inset-bottom);
+      --sal: env(safe-area-inset-left);
+
+      --font-base: 18px;
+      --font-lg: 20px;
+      --font-xl: 30px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #ffffff;
+      margin: 0;
+      padding: calc(16px + var(--sat)) calc(16px + var(--sar)) calc(16px + var(--sab)) calc(16px + var(--sal));
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+
+    .container {
+      height: calc(100dvh - (16px + var(--sat)) - (16px + var(--sab)));
+      max-width: 1200px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: var(--radius);
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    /* ===== Header ===== */
+    .app-header {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+    }
+
+    .logo-wrap {
+      background: transparent;
+      border-radius: 16px;
+      padding: 0;
+      box-shadow: none;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+    }
+
+    .logo-wrap img {
+      max-width: 200px;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Make logo tappable */
+    .logo-wrap img[role="button"]{
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .logo-wrap img[role="button"]:active{
+      transform: scale(0.99);
+    }
+
+    .title-wrap {
+      text-align: center;
+      justify-self: center;
+      width: 100%;
+    }
+
+    .title-wrap h1 {
+      margin: 0;
+      font-size: var(--font-xl);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #111827;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      font-size: var(--font-base);
+      color: var(--muted);
+      font-weight: 650;
+    }
+
+    /* ===== Form ===== */
+    .form {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.25fr;
+      gap: 12px;
+    }
+
+    input {
+      width: 100%;
+      font-size: var(--font-lg);
+      padding: 14px 14px;
+      border-radius: 12px;
+      border: 1px solid #d1d5db;
+      background: #fff;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #34c759;
+      box-shadow: 0 0 0 3px rgba(52,199,89,0.20);
+    }
+
+    /* ===== Buttons ===== */
+    .buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr; /* NEW: includes scan button */
+      gap: 12px;
+    }
+
+    button {
+      font-size: var(--font-lg);
+      padding: 16px 18px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .sign-in { background: #34c759; color: #fff; }
+    .sign-out { background: #ff3b30; color: #fff; }
+    .scan-in { background: #2563eb; color: #fff; } /* NEW */
+
+    /* ===== Lists ===== */
+    .panes {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      min-height: 0;
+    }
+
+    .pane {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .pane h2 {
+      margin: 4px 0 10px;
+      font-size: 20px;
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .count {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      min-height: 0;
+      border-radius: 12px;
+    }
+
+    li {
+      background: #f9fafb;
+      margin: 8px 0;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: var(--font-base);
+      cursor: pointer;
+      border: 1px solid #eef0f4;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    li.selected {
+      border-color: #34c759;
+      background: rgba(52,199,89,0.14);
+      box-shadow: 0 0 0 3px rgba(52,199,89,0.18);
+    }
+
+    .li-text {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .li-name {
+      font-weight: 750;
+      color: #111827;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .li-company {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 650;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .delete-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      border: 1px solid #e5e7eb;
+      background: #ffffff;
+      font-size: 20px;
+      line-height: 1;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .delete-btn:active {
+      background: #fee2e2;
+      border-color: #fecaca;
+    }
+
+    /* ===== Modals ===== */
+    [hidden] { display: none !important; }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+    }
+
+    .modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 22px;
+      border-radius: 16px;
+      max-width: 520px;
+      width: min(92vw, 520px);
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    }
+
+    .modal h3 { font-size: 22px; margin: 0 0 10px; }
+    .modal p { margin: 0 0 14px; color: #111827; }
+
+    .modal-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal-buttons.one { grid-template-columns: 1fr; }
+
+    .modal-buttons button { font-size: 18px; padding: 12px; border-radius: 12px; }
+    .yes { background: #34c759; color: white; }
+    .no { background: #ff3b30; color: white; }
+
+    /* QR modal tweaks */
+    #qrModal .modal {
+      max-width: 560px;
+      width: min(95vw, 560px);
+      padding: 26px 22px;
+      text-align: left;
+    }
+    #qrModal .qrRow{
+      display:flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #qrModal #qrCode{
+      width: 260px;
+      height: 260px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    #qrModal .qrMeta{
+      min-width: 240px;
+      flex: 1;
+    }
+    #qrModal .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      word-break: break-word;
+      background:#f9fafb;
+      border:1px solid #eef0f4;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    /* Scan modal tweaks */
+    #scanModal .modal{
+      max-width: 620px;
+      width: min(95vw, 620px);
+      padding: 22px 18px;
+      text-align: left;
+    }
+    #scanReader{
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      background: #0b1220;
+      min-height: 340px;
+    }
+    #scanHint{
+      color: var(--muted);
+      font-weight: 700;
+      margin: 10px 2px 0;
+    }
+
+    @media (max-width: 900px) {
+      .app-header { grid-template-columns: 1fr; text-align: center; gap: 12px; }
+      .logo-wrap { justify-content: center; }
+
+      .form { grid-template-columns: 1fr; }
+      .buttons { grid-template-columns: 1fr; } /* stack */
+      .panes { grid-template-columns: 1fr; }
+      #scanReader { min-height: 280px; }
+    }
+  </style>
 </head>
+
 <body>
-
-<!-- Modals -->
-<div id="confirmModal">
-  <div class="modal-backdrop"></div>
-  <div class="modal">
-    <h3>Induction Confirmation</h3>
-    <p>Have you been inducted?</p>
-    <div class="modal-buttons">
-      <button class="yes" onclick="confirmInduction(true)">Yes</button>
-      <button class="no" onclick="confirmInduction(false)">No</button>
+  <!-- Induction Modal -->
+  <div id="confirmModal" hidden aria-modal="true" role="dialog" aria-labelledby="confirmTitle">
+    <div class="modal-backdrop" data-close="confirm"></div>
+    <div class="modal">
+      <h3 id="confirmTitle">Induction Confirmation</h3>
+      <p id="confirmQuestion">Have you been inducted?</p>
+      <div class="modal-buttons">
+        <button class="yes" id="confirmYes">Yes</button>
+        <button class="no" id="confirmNo">No</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="passcodeModal">
-  <div class="modal-backdrop"></div>
-  <div class="modal">
-    <h3>Enter Passcode</h3>
-    <input type="password" id="passcodeInput" placeholder="Enter passcode" />
-    <div class="modal-buttons">
-      <button class="yes" onclick="checkPasscode()">Submit</button>
-      <button class="no" onclick="closePasscodeModal()">Cancel</button>
+  <!-- Passcode Modal -->
+  <div id="passcodeModal" hidden aria-modal="true" role="dialog" aria-labelledby="passcodeTitle">
+    <div class="modal-backdrop" data-close="passcode"></div>
+    <div class="modal">
+      <h3 id="passcodeTitle">Enter Passcode</h3>
+      <input
+        type="password"
+        id="passcodeInput"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        maxlength="4"
+        autocomplete="one-time-code"
+        placeholder="Enter passcode"
+      />
+      <div class="modal-buttons">
+        <button class="yes" id="passcodeSubmit">Submit</button>
+        <button class="no" id="passcodeCancel">Cancel</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="container">
-  <div style="text-align:center; margin-bottom:20px;">
-    <img src="logo.png" alt="Company Logo" style="max-width:200px; height:auto;">
-  </div>
-
-  <h1>Project Argo CDM Area - Sign In/Out</h1>
-  <input id="nameInput" placeholder="Enter your name" />
-
-  <div class="buttons">
-    <button class="sign-in" onclick="signIn()">Sign In</button>
-    <button class="sign-out" onclick="signOut()">Sign Out</button>
-  </div>
-
-  <h2>Currently Signed In</h2>
-  <ul id="activeList"></ul>
-
-  <div class="footer">
-    <button class="export" onclick="requestExport()">Generate Report</button>
-  </div>
-</div>
-
-<div id="exportConfirmModal">
-  <div class="modal-backdrop"></div>
-  <div class="modal">
-    <h3>Confirm Export</h3>
-    <p>Did the CSV download successfully?</p>
-    <div class="modal-buttons">
-      <button class="yes" onclick="confirmExport(true)">Yes</button>
-      <button class="no" onclick="confirmExport(false)">No</button>
+  <!-- Export Confirm Modal -->
+  <div id="exportConfirmModal" hidden aria-modal="true" role="dialog" aria-labelledby="exportTitle">
+    <div class="modal-backdrop" data-close="export"></div>
+    <div class="modal">
+      <h3 id="exportTitle">CSV Export</h3>
+      <p id="exportMsg">Your CSV has been downloaded.</p>
+      <div class="modal-buttons.one modal-buttons">
+        <button class="yes" id="exportOk">OK</button>
+      </div>
     </div>
   </div>
-</div>
 
-  
-<script>
-let visits = JSON.parse(localStorage.getItem("visits")) || [];
-const nameInput = document.getElementById("nameInput");
-  // Reset timer on any input or focus
-nameInput.addEventListener("input", resetNameClearTimer);
-nameInput.addEventListener("focus", resetNameClearTimer);
+  <!-- Delete Confirm Modal -->
+  <div id="deleteConfirmModal" hidden aria-modal="true" role="dialog" aria-labelledby="deleteTitle">
+    <div class="modal-backdrop" data-close="delete"></div>
+    <div class="modal">
+      <h3 id="deleteTitle">Delete Name</h3>
+      <p id="deleteText"></p>
+      <div class="modal-buttons">
+        <button class="yes" id="deleteYes">Delete</button>
+        <button class="no" id="deleteNo">Cancel</button>
+      </div>
+    </div>
+  </div>
 
-const activeList = document.getElementById("activeList");
-let pendingSignInName = null;
-let pendingAction = null; // "export" or "clear"
-let nameClearTimeout = null;
+  <!-- Admin Modal -->
+  <div id="adminModal" hidden aria-modal="true" role="dialog" aria-labelledby="adminTitle">
+    <div class="modal-backdrop" data-close="admin"></div>
+    <div class="modal">
+      <h3 id="adminTitle">Admin</h3>
+      <p id="adminHint">Archive tools</p>
+      <div class="modal-buttons one" style="gap:10px;">
+        <button class="yes" id="adminDlLast">Download last archived export</button>
+        <button class="yes" id="adminDlAll">Download full archive</button>
+        <button class="no" id="adminClear">Clear archive</button>
+        <button class="no" id="adminClose">Close</button>
+      </div>
+    </div>
+  </div>
 
+  <!-- QR Modal -->
+  <div id="qrModal" hidden aria-modal="true" role="dialog" aria-labelledby="qrTitle">
+    <div class="modal-backdrop" data-close="qr"></div>
+    <div class="modal">
+      <h3 id="qrTitle" style="margin:0 0 10px;">Your Sign-in QR</h3>
 
-window.addEventListener("load", () => {
-  document.getElementById("exportConfirmModal").style.display = "none";
-});
+      <div class="qrRow">
+        <div id="qrCode" aria-label="QR code"></div>
 
-  
-render();
+        <div class="qrMeta">
+          <div style="color: var(--muted); font-weight: 750; margin-bottom: 8px;">
+            Encoded data:
+          </div>
+          <div id="qrText" class="mono"></div>
 
-  function formatDate(dateString) {
-  const d = new Date(dateString);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  const hours = String(d.getHours()).padStart(2, "0");
-  const minutes = String(d.getMinutes()).padStart(2, "0");
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
-}
+          <div class="modal-buttons one" style="margin-top: 14px;">
+            <button class="no" id="qrCloseBtn">Close Window</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <!-- NEW: Scan Modal -->
+  <div id="scanModal" hidden aria-modal="true" role="dialog" aria-labelledby="scanTitle">
+    <div class="modal-backdrop" data-close="scan"></div>
+    <div class="modal">
+      <h3 id="scanTitle" style="margin:0 0 10px;">Scan Previous Visitor QR</h3>
+      <div id="scanReader" aria-label="Camera QR scanner"></div>
+      <div id="scanHint">Point the camera at a visitor QR code. Camera permission is required (HTTPS / localhost).</div>
+      <div class="modal-buttons one" style="margin-top: 14px;">
+        <button class="no" id="scanCloseBtn">Close Window</button>
+      </div>
+    </div>
+  </div>
 
-// --- Sign In / Out ---
-function signIn() {
-  const name = nameInput.value.trim();
-  if (!name) return alert("Please enter your name");
-  if (visits.find(v => v.name === name && !v.signOut)) return alert("You are already signed in");
-  pendingSignInName = name;
-  document.getElementById("confirmModal").style.display = "block";
-}
+  <main class="container">
+    <header class="app-header">
+      <div class="logo-wrap">
+        <img id="logoBtn" src="logo.png" alt="Company Logo" role="button" tabindex="0" />
+      </div>
 
-function confirmInduction(confirmed) {
-  document.getElementById("confirmModal").style.display = "none";
-  if (!confirmed) { pendingSignInName = null; return; }
-  visits.push({ name: pendingSignInName, signIn: new Date().toISOString(), signOut: null });
-  pendingSignInName = null;
-  save();
-}
+      <div class="title-wrap">
+        <h1 id="hdrTitle">Project Argo</h1>
+        <div class="subtitle" id="hdrSub">CDM Area – Visitor Sign In / Out</div>
+      </div>
+    </header>
 
-function signOut() {
-  const name = nameInput.value.trim();
-  const visit = visits.find(v => v.name === name && !v.signOut);
-  if (!visit) return alert("You are not currently signed in");
-  visit.signOut = new Date().toISOString();
-  save();
-}
+    <section class="form" aria-label="Sign in form">
+      <input id="firstNameInput" autocomplete="given-name" placeholder="First name" />
+      <input id="lastNameInput" autocomplete="family-name" placeholder="Last name" />
+      <input id="companyInput" autocomplete="organization" placeholder="Company" />
+    </section>
 
-function save() {
-  localStorage.setItem("visits", JSON.stringify(visits));
-  nameInput.value = "";
-  render();
-}
+    <section class="buttons">
+      <button class="sign-in" id="signInBtn">Sign In</button>
+      <button class="sign-out" id="signOutBtn">Sign Out</button>
+      <button class="scan-in" id="scanInBtn" type="button">QR Sign In</button>
+    </section>
 
-function render() {
-  activeList.innerHTML = "";
-  visits.filter(v => !v.signOut).forEach(v => {
-    const li = document.createElement("li");
-    li.textContent = v.name;
-    li.addEventListener("click", () => { nameInput.value = v.name; });
-    activeList.appendChild(li);
-  });
-}
-function exportCSV() {
-  let csv = "Name,Sign In,Sign Out\n";
-  visits.forEach(v => {
-    csv += `${v.name},${formatDate(v.signIn)},${v.signOut ? formatDate(v.signOut) : ""}\n`;
+    <section class="panes">
+      <div class="pane">
+        <h2>
+          <span id="activeHeader">Currently Signed In</span>
+          <span class="count" id="activeCount">0</span>
+        </h2>
+        <ul id="activeList"></ul>
+      </div>
 
-  });
+      <div class="pane">
+        <h2>
+          <span id="historyHeader">Previously Signed In</span>
+          <span class="count" id="historyCount">0</span>
+        </h2>
+        <ul id="historyList"></ul>
+      </div>
+    </section>
+  </main>
 
-  // 📅 Build timestamped filename
-  const now = new Date();
-  const timestamp =
-    now.getFullYear() + "-" +
-    String(now.getMonth() + 1).padStart(2, "0") + "-" +
-    String(now.getDate()).padStart(2, "0") + "_" +
-    String(now.getHours()).padStart(2, "0") + "-" +
-    String(now.getMinutes()).padStart(2, "0") + "-" +
-    String(now.getSeconds()).padStart(2, "0");
+  <!-- QR generator -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <!-- Camera QR scanner (uses getUserMedia) -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.10/html5-qrcode.min.js"></script>
 
-  const filename = `CDM Visitors Log_${timestamp}.csv`;
+  <script>
+    // ---- Service Worker Register ----
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./service-worker.js");
+      });
+    }
 
-  const blob = new Blob([csv], { type: "text/csv" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = filename;
-  link.click();
+    // ---- Data ----
+    let visits = JSON.parse(localStorage.getItem("visits")) || [];
+    let previousNames = JSON.parse(localStorage.getItem("previousNames")) || {};
+    let archive = JSON.parse(localStorage.getItem("archive")) || [];
 
-  URL.revokeObjectURL(link.href);
+    // ---- Elements ----
+    const firstNameInput = document.getElementById("firstNameInput");
+    const lastNameInput = document.getElementById("lastNameInput");
+    const companyInput = document.getElementById("companyInput");
 
-  // Ask user to confirm download success
-  document.getElementById("exportConfirmModal").style.display = "block";
-}
+    const activeList = document.getElementById("activeList");
+    const historyList = document.getElementById("historyList");
+    const activeCount = document.getElementById("activeCount");
+    const historyCount = document.getElementById("historyCount");
 
+    const confirmModal = document.getElementById("confirmModal");
+    const passcodeModal = document.getElementById("passcodeModal");
+    const exportConfirmModal = document.getElementById("exportConfirmModal");
+    const deleteConfirmModal = document.getElementById("deleteConfirmModal");
+    const adminModal = document.getElementById("adminModal");
+    const qrModal = document.getElementById("qrModal");
+    const scanModal = document.getElementById("scanModal");
 
+    const signInBtn = document.getElementById("signInBtn");
+    const signOutBtn = document.getElementById("signOutBtn");
+    const scanInBtn = document.getElementById("scanInBtn");
+    const logoBtn = document.getElementById("logoBtn");
 
-function requestExport() {
-  pendingAction = "export";
-  document.getElementById("passcodeModal").style.display = "block";
-  document.getElementById("passcodeInput").value = "";
-  document.getElementById("passcodeInput").focus();
-}
+    const passcodeInput = document.getElementById("passcodeInput");
+    const deleteText = document.getElementById("deleteText");
 
+    // Admin elements
+    const adminDlLast = document.getElementById("adminDlLast");
+    const adminDlAll = document.getElementById("adminDlAll");
+    const adminClear = document.getElementById("adminClear");
+    const adminClose = document.getElementById("adminClose");
 
+    // QR elements (inside QR modal)
+    const qrCodeEl = document.getElementById("qrCode");
+    const qrTextEl = document.getElementById("qrText");
+    const qrCloseBtn = document.getElementById("qrCloseBtn");
 
-function closePasscodeModal() { document.getElementById("passcodeModal").style.display = "none"; }
-function checkPasscode() {
-  const enteredPasscode = document.getElementById("passcodeInput").value;
+    // Scan elements
+    const scanReaderEl = document.getElementById("scanReader");
+    const scanCloseBtn = document.getElementById("scanCloseBtn");
 
-  if (enteredPasscode !== "8877") {
-    alert("Incorrect passcode.");
-    document.getElementById("passcodeInput").value = "";
-    document.getElementById("passcodeInput").focus();
-    return;
-  }
+    // ---- State ----
+    let pendingSignIn = null;
+    let pendingAction = null;
+    let pendingDeleteName = null;
+    let selectedName = null;
 
-  closePasscodeModal();
+    // Scanner instance
+    let html5Qr = null;
+    let scannerRunning = false;
 
-  if (pendingAction === "export") {
-    exportCSV();
-  }
+    function setSelected(name, listId) {
+      selectedName = name;
+      document.querySelectorAll("#activeList li, #historyList li").forEach(li => li.classList.remove("selected"));
+      if (listId) {
+        const el = document.querySelector(`#${listId} li[data-name="${CSS.escape(name)}"]`);
+        if (el) el.classList.add("selected");
+      }
+    }
 
-  pendingAction = null;
-}
+    // AUTO-CLEAR fields after inactivity
+    let idleTimer = null;
 
-function confirmExport(success) {
-  document.getElementById("exportConfirmModal").style.display = "none";
+    function clearFormFields() {
+      firstNameInput.value = "";
+      lastNameInput.value = "";
+      companyInput.value = "";
+      selectedName = null;
+      document.querySelectorAll("#activeList li, #historyList li").forEach(li => li.classList.remove("selected"));
+    }
 
-  if (!success) {
-    alert("Export cancelled. Visitor data was not cleared.");
-    return;
-  }
+    function resetIdleTimer() {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        if (firstNameInput.value.trim() || lastNameInput.value.trim() || companyInput.value.trim()) {
+          clearFormFields();
+        }
+      }, 10000);
+    }
 
-  // ✅ Clear data only after confirmation
-  visits = [];
-  localStorage.removeItem("visits");
-  render();
+    function stopIdleTimer() {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
 
-  alert("Export confirmed. Visitor data has been cleared.");
-}
-function resetNameClearTimer() {
-  // Clear any existing timer
-  if (nameClearTimeout) clearTimeout(nameClearTimeout);
+    [firstNameInput, lastNameInput, companyInput].forEach((inp) => {
+      inp.addEventListener("input", resetIdleTimer);
+      inp.addEventListener("focus", resetIdleTimer);
+    });
 
-  // Start a new 10-second timer
-  nameClearTimeout = setTimeout(() => {
-    nameInput.value = "";
-  }, 10000); // 10,000 ms = 10 seconds
-}
-function pauseNameClearTimer() {
-  if (nameClearTimeout) clearTimeout(nameClearTimeout);
-}
+    ["pointerdown", "touchstart", "keydown"].forEach((evt) => {
+      document.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
 
+    resetIdleTimer();
 
-// --- Wake Lock ---
-let wakeLock = null;
-async function requestWakeLock() {
-  try { wakeLock = await navigator.wakeLock.request('screen'); }
-  catch(err){ console.error(err); }
-}
-document.addEventListener('visibilitychange', () => {
-  if (wakeLock !== null && document.visibilityState === 'visible') requestWakeLock();
-});
-requestWakeLock();
+    // Helpers
+    function openModal(el) { el.hidden = false; }
+    function closeModal(el) { el.hidden = true; }
 
-// --- Fullscreen ---
-async function requestFullscreen() {
-  const elem = document.documentElement;
-  if (elem.requestFullscreen) await elem.requestFullscreen();
-  else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen();
-}
-window.addEventListener('load', () => {
-  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
-    requestFullscreen().catch(() => {});
-  }
-});
-document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement) requestFullscreen().catch(() => {});
-});
+    function getFullName(first, last) {
+      return `${first} ${last}`.trim().replace(/\s+/g, " ");
+    }
 
-// --- Service Worker Registration ---
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(registration => console.log('Service Worker registered with scope:', registration.scope))
-      .catch(error => console.log('Service Worker registration failed:', error));
-  });
-}
-</script>
+    // Unique token for QR payload (not a user input)
+    function generateToken() {
+      if (crypto.randomUUID) return crypto.randomUUID();
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      return [...bytes].map(b => b.toString(16).padStart(2, "0")).join("");
+    }
 
+    // Show QR in modal
+    function showQRModal({ name, company, token }) {
+      const payload =
+        `NAME:${name}\n` +
+        `COMPANY:${company}\n` +
+        `TOKEN:${token}`;
+
+      qrCodeEl.innerHTML = "";
+      qrTextEl.textContent = payload;
+
+      new QRCode(qrCodeEl, { text: payload, width: 260, height: 260 });
+      openModal(qrModal);
+    }
+
+    function closeQRModal() {
+      closeModal(qrModal);
+      qrCodeEl.innerHTML = "";
+      qrTextEl.textContent = "";
+      resetIdleTimer();
+    }
+
+    // Parse scanned QR payload (supports your current format)
+    function parseVisitorPayload(text) {
+      const raw = String(text ?? "").trim();
+
+      // If in future you switch to JSON, this supports it too
+      if (raw.startsWith("{") && raw.endsWith("}")) {
+        try {
+          const obj = JSON.parse(raw);
+          const name = String(obj.name ?? "").trim();
+          const company = String(obj.company ?? "").trim();
+          if (name && company) return { name, company };
+        } catch {}
+      }
+
+      // Current format:
+      // NAME:John Doe
+      // COMPANY:Acme
+      // TOKEN:...
+      const lines = raw.split(/\r?\n/);
+      const map = {};
+      for (const line of lines) {
+        const idx = line.indexOf(":");
+        if (idx === -1) continue;
+        const key = line.slice(0, idx).trim().toUpperCase();
+        const val = line.slice(idx + 1).trim();
+        map[key] = val;
+      }
+
+      const name = (map["NAME"] || "").trim();
+      const company = (map["COMPANY"] || "").trim();
+      if (!name || !company) return null;
+      return { name, company };
+    }
+
+    // Sign in directly from scan (no induction prompt)
+    function signInFromScan(name, company) {
+      const cleanName = String(name).trim().replace(/\s+/g, " ");
+      const cleanCompany = String(company).trim();
+
+      if (!cleanName || !cleanCompany) {
+        alert("Scanned QR did not contain a name and company.");
+        return;
+      }
+
+      if (visits.find(v => v.name === cleanName && !v.signOut)) {
+        alert("That visitor is already signed in.");
+        return;
+      }
+
+      const visitRecord = {
+        name: cleanName,
+        company: cleanCompany,
+        token: generateToken(),
+        signIn: new Date().toISOString(),
+        signOut: null
+      };
+
+      visits.push(visitRecord);
+      previousNames[cleanName] = cleanCompany;
+      localStorage.setItem("previousNames", JSON.stringify(previousNames));
+
+      // Clear form + persist + render
+      save();
+
+      // Show QR for the new sign-in
+      showQRModal(visitRecord);
+    }
+
+    // ---- Scanner modal ----
+    async function startScanner() {
+      // Camera requires https or localhost
+      if (!window.isSecureContext) {
+        alert("Camera requires HTTPS (or localhost). Please run this on https:// or http://localhost.");
+        return;
+      }
+
+      openModal(scanModal);
+      resetIdleTimer();
+
+      // Ensure fresh container
+      scanReaderEl.innerHTML = "";
+      html5Qr = new Html5Qrcode("scanReader");
+
+      try {
+        scannerRunning = true;
+        await html5Qr.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          async (decodedText) => {
+            // On success: stop camera, close modal, sign in
+            const parsed = parseVisitorPayload(decodedText);
+            await stopScanner(true);
+            closeModal(scanModal);
+
+            if (!parsed) {
+              alert("QR code format not recognised. Please scan a visitor QR generated by this system.");
+              return;
+            }
+
+            signInFromScan(parsed.name, parsed.company);
+          },
+          () => { /* ignore scan errors */ }
+        );
+      } catch (err) {
+        scannerRunning = false;
+        closeModal(scanModal);
+        alert("Could not start camera. Please allow camera access and try again.");
+        console.error(err);
+      }
+    }
+
+    async function stopScanner(silent = false) {
+      try {
+        if (html5Qr && scannerRunning) {
+          scannerRunning = false;
+          await html5Qr.stop();
+          await html5Qr.clear();
+        }
+      } catch (err) {
+        if (!silent) console.error(err);
+      } finally {
+        html5Qr = null;
+        scanReaderEl.innerHTML = "";
+      }
+    }
+
+    async function closeScanModal() {
+      await stopScanner(true);
+      closeModal(scanModal);
+      resetIdleTimer();
+    }
+
+    // Backdrop close (including QR + scan)
+    document.addEventListener("click", async (e) => {
+      const target = e.target;
+      if (target && target.matches(".modal-backdrop")) {
+        const which = target.getAttribute("data-close");
+        if (which === "confirm") closeModal(confirmModal);
+        if (which === "passcode") closeModal(passcodeModal);
+        if (which === "export") closeModal(exportConfirmModal);
+        if (which === "delete") closeModal(deleteConfirmModal);
+        if (which === "admin") closeModal(adminModal);
+        if (which === "qr") closeQRModal();
+        if (which === "scan") await closeScanModal();
+      }
+    });
+
+    // Escape close
+    document.addEventListener("keydown", async (e) => {
+      if (e.key !== "Escape") return;
+      if (!confirmModal.hidden) closeModal(confirmModal);
+      if (!passcodeModal.hidden) closeModal(passcodeModal);
+      if (!exportConfirmModal.hidden) closeModal(exportConfirmModal);
+      if (!deleteConfirmModal.hidden) closeModal(deleteConfirmModal);
+      if (!adminModal.hidden) closeModal(adminModal);
+      if (!qrModal.hidden) closeQRModal();
+      if (!scanModal.hidden) await closeScanModal();
+    });
+
+    // Enter submits passcode
+    passcodeInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") checkPasscode();
+    });
+
+    // Buttons
+    signInBtn.addEventListener("click", signIn);
+    signOutBtn.addEventListener("click", signOut);
+    scanInBtn.addEventListener("click", startScanner);
+
+    qrCloseBtn.addEventListener("click", closeQRModal);
+    scanCloseBtn.addEventListener("click", closeScanModal);
+
+    // Logo triggers export request (passcode modal)
+    logoBtn.addEventListener("click", requestExport);
+    logoBtn.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        requestExport();
+      }
+    });
+
+    // Hidden admin shortcut: triple-tap title within ~1 second
+    let titleTapCount = 0;
+    let titleTapTimer = null;
+
+    document.getElementById("hdrTitle").addEventListener("click", () => {
+      titleTapCount++;
+      clearTimeout(titleTapTimer);
+      titleTapTimer = setTimeout(() => { titleTapCount = 0; }, 900);
+
+      if (titleTapCount >= 3) {
+        titleTapCount = 0;
+        pendingAction = "admin";
+        passcodeInput.value = "";
+        openModal(passcodeModal);
+        setTimeout(() => passcodeInput.focus(), 50);
+        resetIdleTimer();
+      }
+    });
+
+    document.getElementById("confirmYes").addEventListener("click", () => confirmInduction(true));
+    document.getElementById("confirmNo").addEventListener("click", () => confirmInduction(false));
+
+    document.getElementById("passcodeSubmit").addEventListener("click", checkPasscode);
+    document.getElementById("passcodeCancel").addEventListener("click", closePasscodeModal);
+
+    document.getElementById("exportOk").addEventListener("click", () => closeModal(exportConfirmModal));
+
+    document.getElementById("deleteNo").addEventListener("click", () => {
+      pendingDeleteName = null;
+      closeModal(deleteConfirmModal);
+    });
+
+    document.getElementById("deleteYes").addEventListener("click", () => {
+      if (!pendingDeleteName) return;
+      delete previousNames[pendingDeleteName];
+      localStorage.setItem("previousNames", JSON.stringify(previousNames));
+      pendingDeleteName = null;
+      closeModal(deleteConfirmModal);
+      render();
+    });
+
+    // Admin buttons
+    adminDlLast.addEventListener("click", () => { downloadLastArchived(); resetIdleTimer(); });
+    adminDlAll.addEventListener("click", () => { downloadFullArchive(); resetIdleTimer(); });
+    adminClear.addEventListener("click", () => { clearArchive(); resetIdleTimer(); });
+    adminClose.addEventListener("click", () => closeModal(adminModal));
+
+    // iOS keyboard friendliness
+    [firstNameInput, lastNameInput, companyInput, passcodeInput].forEach((inp) => {
+      inp.addEventListener("focus", () => {
+        setTimeout(() => inp.scrollIntoView({ block: "center", behavior: "smooth" }), 50);
+      });
+    });
+
+    render();
+
+    function signIn() {
+      const first = firstNameInput.value.trim();
+      const last = lastNameInput.value.trim();
+      const company = companyInput.value.trim();
+
+      if (!first || !last || !company) return alert("Please enter first name, last name, and company");
+
+      const fullName = getFullName(first, last);
+
+      if (visits.find(v => v.name === fullName && !v.signOut))
+        return alert("You are already signed in");
+
+      pendingSignIn = { name: fullName, company };
+      openModal(confirmModal);
+    }
+
+    function confirmInduction(confirmed) {
+      closeModal(confirmModal);
+      if (!confirmed) { pendingSignIn = null; return; }
+
+      const visitRecord = {
+        name: pendingSignIn.name,
+        company: pendingSignIn.company,
+        token: generateToken(),
+        signIn: new Date().toISOString(),
+        signOut: null
+      };
+
+      visits.push(visitRecord);
+
+      previousNames[pendingSignIn.name] = pendingSignIn.company;
+      localStorage.setItem("previousNames", JSON.stringify(previousNames));
+
+      // Show QR in modal immediately
+      showQRModal(visitRecord);
+
+      pendingSignIn = null;
+      save();
+    }
+
+    function signOut() {
+      const first = firstNameInput.value.trim();
+      const last = lastNameInput.value.trim();
+
+      const fullName = getFullName(first, last);
+      const visit = visits.find(v => v.name === fullName && !v.signOut);
+      if (!visit) return alert("You are not currently signed in");
+
+      visit.signOut = new Date().toISOString();
+      save();
+    }
+
+    function save() {
+      localStorage.setItem("visits", JSON.stringify(visits));
+      firstNameInput.value = "";
+      lastNameInput.value = "";
+      companyInput.value = "";
+
+      selectedName = null;
+      document.querySelectorAll("#activeList li, #historyList li").forEach(li => li.classList.remove("selected"));
+
+      stopIdleTimer();
+      resetIdleTimer();
+      render();
+    }
+
+    function render() {
+      activeList.innerHTML = "";
+      historyList.innerHTML = "";
+
+      const signedInNames = new Set();
+      const active = visits.filter(v => !v.signOut);
+
+      active.forEach(v => {
+        const li = document.createElement("li");
+        li.dataset.name = v.name;
+
+        const text = document.createElement("div");
+        text.className = "li-text";
+        text.innerHTML = `
+          <div class="li-name">${escapeHtml(v.name)}</div>
+          <div class="li-company">${escapeHtml(v.company)}</div>
+        `;
+
+        text.addEventListener("click", () => {
+          setSelected(v.name, "activeList");
+          const parts = String(v.name).split(" ");
+          firstNameInput.value = parts.slice(0, -1).join(" ") || "";
+          lastNameInput.value = parts.slice(-1).join(" ") || "";
+          companyInput.value = v.company;
+          resetIdleTimer();
+        });
+
+        li.appendChild(text);
+        activeList.appendChild(li);
+        signedInNames.add(v.name);
+      });
+
+      const historyNames = Object.keys(previousNames)
+        .filter(name => !signedInNames.has(name))
+        .sort((a,b) => a.localeCompare(b));
+
+      historyNames.forEach(name => {
+        const company = previousNames[name] || "";
+        const li = document.createElement("li");
+        li.dataset.name = name;
+
+        const text = document.createElement("div");
+        text.className = "li-text";
+        text.innerHTML = `
+          <div class="li-name">${escapeHtml(name)}</div>
+          <div class="li-company">${escapeHtml(company)}</div>
+        `;
+
+        text.addEventListener("click", () => {
+          setSelected(name, "historyList");
+          const parts = String(name).split(" ");
+          firstNameInput.value = parts.slice(0, -1).join(" ") || "";
+          lastNameInput.value = parts.slice(-1).join(" ") || "";
+          companyInput.value = company;
+          resetIdleTimer();
+        });
+
+        const del = document.createElement("button");
+        del.className = "delete-btn";
+        del.type = "button";
+        del.textContent = "✕";
+        del.setAttribute("aria-label", `Delete ${name}`);
+
+        del.addEventListener("click", (e) => {
+          e.stopPropagation();
+          pendingDeleteName = name;
+          deleteText.textContent = `Delete "${name}" (${company}) from the previous list?`;
+          openModal(deleteConfirmModal);
+          resetIdleTimer();
+        });
+
+        li.appendChild(text);
+        li.appendChild(del);
+        historyList.appendChild(li);
+      });
+
+      activeCount.textContent = String(active.length);
+      historyCount.textContent = String(historyNames.length);
+
+      if (selectedName) {
+        const activeEl = document.querySelector(`#activeList li[data-name="${CSS.escape(selectedName)}"]`);
+        const historyEl = document.querySelector(`#historyList li[data-name="${CSS.escape(selectedName)}"]`);
+        (activeEl || historyEl)?.classList.add("selected");
+      }
+    }
+
+    // Export helpers
+    function csvEscape(value) {
+      const s = String(value ?? "");
+      if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }
+
+    function downloadCSVFromVisits(visitsArr, filenamePrefix) {
+      const header = ["Name", "Company", "Sign In", "Sign Out"];
+      const rows = [header];
+
+      visitsArr.forEach(v => rows.push([v.name, v.company, v.signIn, v.signOut || ""]));
+
+      const csv = rows.map(r => r.map(csvEscape).join(",")).join("\n") + "\n";
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+
+      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
+      link.download = `${filenamePrefix}_${stamp}.csv`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCSV() {
+      const header = ["Name", "Company", "Sign In", "Sign Out"];
+      const rows = [header];
+
+      visits.forEach(v => rows.push([v.name, v.company, v.signIn, v.signOut || ""]));
+
+      const csv = rows.map(r => r.map(csvEscape).join(",")).join("\n") + "\n";
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+
+      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g, "-");
+      link.download = `CDM_Visitor_Log_${stamp}.csv`;
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      archive = JSON.parse(localStorage.getItem("archive")) || [];
+      archive.push({
+        exportedAt: new Date().toISOString(),
+        count: visits.length,
+        visits: visits
+      });
+      localStorage.setItem("archive", JSON.stringify(archive));
+
+      visits = [];
+      localStorage.setItem("visits", JSON.stringify(visits));
+
+      openModal(exportConfirmModal);
+      render();
+    }
+
+    function requestExport() {
+      if (!visits.length) {
+        alert("No visits to export.");
+        return;
+      }
+
+      pendingAction = "export";
+      passcodeInput.value = "";
+      openModal(passcodeModal);
+      setTimeout(() => passcodeInput.focus(), 50);
+      resetIdleTimer();
+    }
+
+    function closePasscodeModal() {
+      passcodeInput.value = "";
+      closeModal(passcodeModal);
+      pendingAction = null;
+      resetIdleTimer();
+    }
+
+    function openAdmin() {
+      archive = JSON.parse(localStorage.getItem("archive")) || [];
+      openModal(adminModal);
+    }
+
+    function downloadLastArchived() {
+      archive = JSON.parse(localStorage.getItem("archive")) || [];
+      if (!archive.length) return alert("No archive available.");
+      const last = archive[archive.length - 1];
+      const visitsArr = Array.isArray(last?.visits) ? last.visits : [];
+      if (!visitsArr.length) return alert("No archive available.");
+      downloadCSVFromVisits(visitsArr, "CDM_Visitor_Archive_Last");
+    }
+
+    function downloadFullArchive() {
+      archive = JSON.parse(localStorage.getItem("archive")) || [];
+      if (!archive.length) return alert("No archive available.");
+      const all = archive.flatMap(b => Array.isArray(b?.visits) ? b.visits : []);
+      if (!all.length) return alert("No archive available.");
+      downloadCSVFromVisits(all, "CDM_Visitor_Archive_All");
+    }
+
+    function clearArchive() {
+      if (!confirm("Clear archive?")) return;
+      archive = [];
+      localStorage.setItem("archive", JSON.stringify(archive));
+      alert("Archive cleared.");
+    }
+
+    function checkPasscode() {
+      if (passcodeInput.value !== "8877") {
+        alert("Incorrect passcode");
+        passcodeInput.value = "";
+        setTimeout(() => passcodeInput.focus(), 50);
+        return;
+      }
+
+      closeModal(passcodeModal);
+
+      if (pendingAction === "export") exportCSV();
+      if (pendingAction === "admin") openAdmin();
+
+      pendingAction = null;
+      resetIdleTimer();
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // Prevent pull-to-refresh / page scroll, allow only UL scrolling
+    document.addEventListener("touchmove", (e) => {
+      const path = e.composedPath ? e.composedPath() : [];
+      const inScrollable = path.some(el => el && el.tagName === "UL");
+      if (!inScrollable) e.preventDefault();
+    }, { passive: false });
+  </script>
 </body>
 </html>
